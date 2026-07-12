@@ -46,3 +46,7 @@ desktop.ini
 *.app
 
 # 注意:ProjectSettings/ 必须入库!ProjectVersion.txt 保证大家 Unity 版本一致
+
+# 临时日志
+unity_import.log
+*.log
