@@ -1,0 +1,48 @@
+# ===== Unity 生成物 / 缓存(不入库) =====
+[Ll]ibrary/
+[Tt]emp/
+[Oo]bj/
+[Bb]uild/
+[Bb]uilds/
+[Ll]ogs/
+[Uu]ser[Ss]ettings/
+[Mm]emoryCaptures/
+
+# Asset meta 冲突的备份
+/[Aa]ssets/AssetStoreTools*
+/[Aa]ssets/Plugins/Editor/JetBrains*
+
+# 自动生成的工程/解决方案文件
+.vs/
+.vscode/
+.idea/
+*.csproj
+*.unityproj
+*.sln
+*.user
+*.userprefs
+*.pidb
+*.booproj
+*.svd
+*.pdb
+*.mdb
+*.opendb
+*.VC.db
+
+# 崩溃与临时
+sysinfo.txt
+*.stackdump
+crashlog*.txt
+
+# 操作系统
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# 构建产物
+*.apk
+*.aab
+*.unitypackage
+*.app
+
+# 注意:ProjectSettings/ 必须入库!ProjectVersion.txt 保证大家 Unity 版本一致
