@@ -1,22 +1,27 @@
 // ============================================================================
-//  PsdCharacterImporterSetup.cs —— 分层角色 PSD 的 PSD Importer 配置(Editor)
+//  PsdCharacterImporterSetup.cs —— 分层角色 PSB 的 PSD Importer 配置(Editor)
 //
-//  用途:把 Assets/_Project/Art/Characters/characters_3forms.psd 配成
+//  用途:把 Assets/_Project/Art/Characters/characters_3forms.psb 配成
 //        「Mosaic 分层 + Character 模式」,这样 Unity 会:
-//          · 把 PSD 每个部位图层拆成独立 Sprite(打成一张图集 Mosaic)
+//          · 把每个部位图层拆成独立 Sprite(打成一张图集 Mosaic)
 //          · 生成一个 Skeleton/PSB 结构,可在 Skinning Editor 里绑骨骼、蒙皮
 //          · 保留图层的相对位置(拼成完整人形)
 //        PPU/锚点与整张立绘保持一致(PPU=600,脚底居中)。
 //
+//  【为什么是 .psb 而不是 .psd】
+//        Unity 的 2D PSD Importer 默认只自动接管 .psb 文件,普通 .psd 仍走 TextureImporter
+//        (当普通贴图,无法分层/绑骨骼)。.psb 与 .psd 内部数据结构一致(PSB=大文件格式),
+//        改扩展名即无损切换。故本项目角色分层图统一用 .psb。
+//
 //  为什么用菜单而非 AssetPostprocessor:
 //        PSDImporter 的关键开关(mosaic / character)是 PSDImporter 专属类型,
-//        且 CharacterSpriteImporter(TextureImporter 版)不会作用到 PSD。
+//        且 CharacterSpriteImporter(TextureImporter 版)不会作用到 PSB。
 //        这里用 SerializedObject 直接改导入器序列化属性 —— 不依赖 internal API,
 //        跨 2022.3 小版本稳定。改完 Reimport。
 //
 //  使用:菜单「失落的女神 ▸ 配置角色PSD(Mosaic骨骼导入)」点一下即可。
-//        之后在 Project 里展开该 psd 能看到各部位 Sprite;
-//        选中 psd → Inspector「Sprite Editor」→ 右上角切到「Skinning Editor」绑骨骼。
+//        之后在 Project 里展开该 psb 能看到各部位 Sprite;
+//        选中 psb → Inspector「Sprite Editor」→ 右上角切到「Skinning Editor」绑骨骼。
 // ============================================================================
 
 using UnityEditor;
@@ -26,7 +31,7 @@ namespace LostGoddess.EditorTools
 {
     public static class PsdCharacterImporterSetup
     {
-        const string PsdPath = "Assets/_Project/Art/Characters/characters_3forms.psd";
+        const string PsdPath = "Assets/_Project/Art/Characters/characters_3forms.psb";
         const float CharacterPPU = 600f; // 与整张立绘一致(见 CharacterSpriteImporter)
 
         [MenuItem("失落的女神/配置角色PSD(Mosaic骨骼导入)")]
@@ -35,23 +40,25 @@ namespace LostGoddess.EditorTools
             var importer = AssetImporter.GetAtPath(PsdPath);
             if (importer == null)
             {
-                EditorUtility.DisplayDialog("找不到 PSD",
+                EditorUtility.DisplayDialog("找不到 PSB",
                     "没找到:\n" + PsdPath +
-                    "\n\n确认 characters_3forms.psd 已在该目录,且 com.unity.2d.psdimporter 包已安装" +
+                    "\n\n确认 characters_3forms.psb 已在该目录,且 com.unity.2d.psdimporter 包已安装" +
                     "(Package Manager 里能看到 2D PSD Importer)。", "知道了");
                 return;
             }
 
-            // 若包未装,导入器会是普通 TextureImporter 而非 PSDImporter
+            // 若包未装 / 文件不是 .psb,导入器会是普通 TextureImporter 而非 PSDImporter
             string typeName = importer.GetType().Name;
             if (typeName != "PSDImporter")
             {
                 EditorUtility.DisplayDialog("PSD Importer 未生效",
-                    "当前 PSD 的导入器是:" + typeName +
-                    "\n\n说明 com.unity.2d.psdimporter 包还没装好。请先:" +
-                    "\n1) 打开 Package Manager,确认「2D PSD Importer」已安装" +
-                    "\n2) 若没有,manifest.json 已加 com.unity.2d.psdimporter,重启 Unity 触发还原" +
-                    "\n3) 还原后重新点本菜单。", "知道了");
+                    "当前文件的导入器是:" + typeName +
+                    "\n\n可能原因:" +
+                    "\n① 文件是 .psd 而非 .psb —— Unity 默认只用 PSD Importer 接管 .psb," +
+                    "普通 .psd 走 TextureImporter。本项目已把角色图改为 .psb。" +
+                    "\n② com.unity.2d.psdimporter 包没装好 —— Package Manager 里确认「2D PSD Importer」已安装;" +
+                    "若没有,manifest.json 已加该包,重启 Unity 触发还原。" +
+                    "\n\n处理后重新点本菜单。", "知道了");
                 return;
             }
 
