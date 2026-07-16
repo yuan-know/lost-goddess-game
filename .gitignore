@@ -39,6 +39,12 @@ crashlog*.txt
 Thumbs.db
 desktop.ini
 
+# Office 打开文件时的临时锁文件
+~$*.docx
+~$*.doc
+~$*.xlsx
+~$*.pptx
+
 # 构建产物
 *.apk
 *.aab
