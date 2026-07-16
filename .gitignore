@@ -50,3 +50,9 @@ desktop.ini
 # 临时日志
 unity_import.log
 *.log
+
+# ===== tools/ 立绘导出管线的调试中间产物(可从 PSD 重新生成,不入库) =====
+tools/layer_probe/
+tools/layer_probe2/
+tools/psd_preview/
+tools/_char_backup/
