@@ -66,7 +66,7 @@ namespace LostGoddess.EditorTools
 
             // ── 关键开关(PSDImporter 的序列化字段名,2022.3 稳定)──
             SetBool(so, "m_MosaicLayers", true);      // Mosaic:各图层拆成独立 Sprite 打图集
-            SetBool(so, "m_ImportHidden", true);      // 导入隐藏图层(本 PSD 部位层默认隐藏!必须开)
+            SetBool(so, "m_ImportHiddenLayers", true); // 导入隐藏图层(本 PSD 部位层默认隐藏!必须开;属性名是 m_ImportHiddenLayers)
             SetBool(so, "m_CharacterMode", true);     // Character 模式:生成可绑骨骼的骨架结构
             SetBool(so, "m_ResliceFromLayer", false); // 不从单层重切
             SetBool(so, "m_KeepDuplicateSpriteName", true);
@@ -91,6 +91,25 @@ namespace LostGoddess.EditorTools
             so.ApplyModifiedPropertiesWithoutUndo();
             EditorUtility.SetDirty(importer);
             importer.SaveAndReimport();
+
+            // 回读校验:确认关键开关真的写进去了(防止属性名写错导致静默失败)
+            var check = new SerializedObject(AssetImporter.GetAtPath(PsdPath));
+            var hiddenProp = check.FindProperty("m_ImportHiddenLayers");
+            var mosaicProp = check.FindProperty("m_MosaicLayers");
+            var charProp = check.FindProperty("m_CharacterMode");
+            bool hiddenOK = hiddenProp != null && hiddenProp.boolValue;
+            bool mosaicOK = mosaicProp != null && mosaicProp.boolValue;
+            bool charOK = charProp != null && charProp.boolValue;
+            if (!hiddenOK || !mosaicOK || !charOK)
+            {
+                EditorUtility.DisplayDialog("配置未完全生效",
+                    "关键开关回读结果:\n" +
+                    "  导入隐藏图层 ImportHiddenLayers = " + hiddenOK + "\n" +
+                    "  Mosaic = " + mosaicOK + "\n" +
+                    "  Character 模式 = " + charOK + "\n\n" +
+                    "若有 false,说明该属性名与当前 PSD Importer 版本不符;把此弹窗内容发给协作方修脚本。", "知道了");
+                return;
+            }
 
             Debug.Log("[PsdCharacterImporterSetup] 已配置并重导入:" + PsdPath +
                       "\n展开该 PSD 应能看到各部位 Sprite;选中它 → Sprite Editor → 右上切 Skinning Editor 绑骨骼。");
