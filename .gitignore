@@ -62,3 +62,6 @@ tools/layer_probe/
 tools/layer_probe2/
 tools/psd_preview/
 tools/_char_backup/
+
+# 骨骼诊断临时图(本地产物,不提交)
+tools/hand_check/
