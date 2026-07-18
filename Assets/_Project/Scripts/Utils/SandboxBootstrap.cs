@@ -58,8 +58,11 @@ namespace LostGoddess
             if (Input.GetKeyDown(KeyCode.Alpha5)) SwitchRoom(ROOM_DARK_FOREST);
             if (Input.GetKeyDown(KeyCode.Alpha6)) SwitchRoom(ROOM_TEMPLE_ENTRY);
             // 序幕真戏入口:7=第 0 幕荒山野道(Cutscene)  8=第一幕神庙门厅(占位)
+            //   9=密室 3(陶罐钥匙→切青年)  0=二楼回廊(铁笼齿轮箱)
             if (Input.GetKeyDown(KeyCode.Alpha7)) SwitchRoom(Rooms.Prologue_Woods);
             if (Input.GetKeyDown(KeyCode.Alpha8)) SwitchRoom(Rooms.Prologue_Foyer);
+            if (Input.GetKeyDown(KeyCode.Alpha9)) SwitchRoom(Rooms.Prologue_Chamber3);
+            if (Input.GetKeyDown(KeyCode.Alpha0)) SwitchRoom(Rooms.Prologue_UpperHall);
 
             // 当前场景地平线微调(验证用):[ 抬背景/相当于降低地面 5% ] 降背景/抬高地面
             // 按住 Shift 是细调 1%,不按是粗调 5%
@@ -156,6 +159,16 @@ namespace LostGoddess
                 LostGoddess.Content.PrologueFoyerScene.Build();
                 return;
             }
+            if (roomName == Rooms.Prologue_Chamber3)
+            {
+                LostGoddess.Content.PrologueChamber3Scene.Build();
+                return;
+            }
+            if (roomName == Rooms.Prologue_UpperHall)
+            {
+                LostGoddess.Content.PrologueUpperHallScene.Build();
+                return;
+            }
 
             // 美术已交付的真实场景:调 SceneRoomBuilder 建三层视差背景 + WalkableArea + 相机跟随;
             // 交互物暂缺(等策划)——只把老人放进去就行,看视差滚动 + 老人走场景效果。
@@ -242,6 +255,7 @@ namespace LostGoddess
             foreach (var n in new[] {
                 "Room_" + ROOM_DARK_FOREST, "Room_" + ROOM_TEMPLE_ENTRY,
                 "Room_" + Rooms.Prologue_Woods, "Room_" + Rooms.Prologue_Foyer,
+                "Room_" + Rooms.Prologue_Chamber3, "Room_" + Rooms.Prologue_UpperHall,
             })
             {
                 var g = GameObject.Find(n);
@@ -291,7 +305,7 @@ namespace LostGoddess
                 $"[失落的女神 · 系统层验证沙盒]\n" +
                 $"点空地=角色走过去  点物件=走近触发\n" +
                 $"F5 存档 / F9 读档   1/2/3 切换青年/中年/老年\n" +
-                $"4=占位沙盒  5=黑暗森林  6=神庙入口  7=序幕荒山  8=序幕门厅\n" +
+                $"4=占位沙盒  5=黑暗森林  6=神庙入口  7=序幕荒山  8=序幕门厅  9=密室3  0=二楼回廊\n" +
                 $"[ / ] 微调地平线(±5%,按 Shift ±1%)   P 打印建议值\n" +
                 $"房间: {GameState.CurrentRoom}   时代: {GameState.CurrentEra}\n" +
                 $"持有提灯: {InventorySystem.Has(Items.item_lamp)}   门已开: {GameState.GetFlag(Flags.demo_door_unlocked)}" +

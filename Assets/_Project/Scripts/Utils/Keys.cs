@@ -141,6 +141,8 @@ namespace LostGoddess
         public const string flash_white     = "sfx_flash_white";     // 闪白切换音
         public const string cage_pry        = "sfx_cage_pry";        // 撬铁笼
         public const string gear_click      = "sfx_gear_click";      // 齿轮"咔哒"
+        public const string mechanism_click = "sfx_mechanism_click"; // 机械机构小咔哒(撬笼开锁)
+        public const string pottery_break   = "sfx_pottery_break";   // 陶罐打碎
         public const string mechanism_rumble = "sfx_mechanism_rumble"; // 机械轰鸣(大门)
         public const string dark_fog_swell   = "sfx_dark_fog_swell";   // 黑雾涌动
     }

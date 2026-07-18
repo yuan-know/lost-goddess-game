@@ -131,18 +131,6 @@ namespace LostGoddess
             brt.sizeDelta = new Vector2(0, 160);
             brt.anchoredPosition = Vector2.zero;
 
-            // 柔和过渡条:比 Bar 稍高,alpha 更淡
-            var fadeGo = new GameObject("BarFade");
-            fadeGo.transform.SetParent(go.transform, false);
-            var fadeImg = fadeGo.AddComponent<Image>();
-            fadeImg.color = new Color(0, 0, 0, 0.22f);
-            var frt = fadeImg.rectTransform;
-            frt.anchorMin = new Vector2(0, 0);
-            frt.anchorMax = new Vector2(1, 0);
-            frt.pivot = new Vector2(0.5f, 0);
-            frt.sizeDelta = new Vector2(0, 220);
-            frt.anchoredPosition = Vector2.zero;
-
             // 文本
             var txtGo = new GameObject("Label");
             txtGo.transform.SetParent(barGo.transform, false);

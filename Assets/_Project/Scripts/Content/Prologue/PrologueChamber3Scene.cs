@@ -1,0 +1,139 @@
+// ============================================================================
+//  PrologueChamber3Scene.cs —— 第二幕【密室 3(洗礼池)】(D6)
+//
+//  剧本(docs/序幕落地清单.md §2.3 + docs/序幕脚本.md 第二幕):
+//    老人走到楼梯左侧密室 → 若干陶罐 + 池底锁孔。
+//    · 打碎陶罐 → 其中一个掉出【钥匙 PotteryKey】
+//    · 钥匙插入池底锁孔 → 闪白 + 切【青年 Era】+ 解锁 UnlockedYoung Flag → 一句独白 → 场景切回门厅
+//
+//  美术未出图:场景全用纯代码"石墙 + 地板"占位。三层视差先复用 TempleEntry(临时借光),
+//  等美术给 Chamber3/{bg_far,bg_mid,bg_near}.png 后 SceneRoomBuilder 会自动切过来。
+//
+//  D6 落地要点:
+//    · 3 个陶罐(x=-2/0/+2),点击一个"打碎"消失;运行时随机选一个作为"藏钥匙的"
+//    · 拾到钥匙后 → 弹提示"背包里多了一枚陶片钥匙"
+//    · 锁孔:x=+6(池底),需 PotteryKey → 播 Cutscene 切青年 → 回门厅
+// ============================================================================
+
+using UnityEngine;
+
+namespace LostGoddess.Content
+{
+    public static class PrologueChamber3Scene
+    {
+        public const float SpawnX = -6f;   // 从门厅走进来时,老人出生在密室左侧
+
+        public static void Build()
+        {
+            // 场景:先复用 TempleEntry 三层视差作占位背景(色调接近石庙)
+            var room = SceneRoomBuilder.Build(SceneRoomBuilder.TempleEntry);
+            room.name = "Room_" + Rooms.Prologue_Chamber3;
+            float groundY = SceneRoomBuilder.TempleEntry.groundY;
+
+            // 老人 - 按当前 Era(从门厅进来通常是 Old)
+            PlayerBuilder.Build(GameState.CurrentEra, groundY, SpawnX);
+
+            // ── 3 个陶罐(其中一个藏钥匙) ─────────────────────────────
+            // 用 Time.frameCount % 3 作伪随机(避免用 Random 使跨存档不确定)
+            int keyIndex = Mathf.Abs(GameState.CurrentRoom.GetHashCode()) % 3;
+            for (int i = 0; i < 3; i++)
+            {
+                BuildPottery(room.transform, i, new Vector2(-2f + i * 2f, groundY + 0.5f),
+                    hasKey: (i == keyIndex), groundY: groundY);
+            }
+
+            // ── 池底锁孔 ────────────────────────────────────────────
+            BuildLockhole(room.transform, new Vector2(6f, groundY + 0.3f), groundY);
+
+            // ── 返回门厅 Portal(左端) ──────────────────────────────
+            BuildBackPortal(room.transform, new Vector2(-14f, groundY), groundY);
+
+            // 首帧:一句独白引路(仅首次)
+            room.AddComponent<PrologueChamber3Director>();
+        }
+
+        // ── helpers ─────────────────────────────────────────────────
+
+        static void BuildPottery(Transform parent, int idx, Vector2 pos, bool hasKey, float groundY)
+        {
+            var go = MakeBlock(parent, $"Interact_Pottery_{idx}", pos, new Vector2(0.7f, 1.0f),
+                new Color(0.6f, 0.42f, 0.28f, 0.9f));
+            var it = go.AddComponent<Interact_Pottery>();
+            it.hasKey = hasKey;
+            it.highlightTarget = go.GetComponent<SpriteRenderer>();
+            it.interactPoint = MakePoint(go.transform, new Vector2(pos.x, groundY));
+        }
+
+        static void BuildLockhole(Transform parent, Vector2 pos, float groundY)
+        {
+            var go = MakeBlock(parent, "Interact_Lockhole", pos, new Vector2(1.2f, 0.6f),
+                new Color(0.25f, 0.28f, 0.35f, 0.9f));
+            var it = go.AddComponent<Interact_Lockhole>();
+            it.highlightTarget = go.GetComponent<SpriteRenderer>();
+            it.interactPoint = MakePoint(go.transform, new Vector2(pos.x - 1.2f, groundY));
+        }
+
+        static void BuildBackPortal(Transform parent, Vector2 pos, float groundY)
+        {
+            var go = MakeBlock(parent, "Portal_BackToFoyer", pos, new Vector2(1.2f, 3.0f),
+                new Color(0.15f, 0.15f, 0.25f, 0.5f));
+            var portal = go.AddComponent<ScenePortal>();
+            portal.targetRoom = Rooms.Prologue_Foyer;
+            portal.highlightTarget = go.GetComponent<SpriteRenderer>();
+            portal.interactPoint = MakePoint(go.transform, new Vector2(pos.x + 1.5f, groundY));
+        }
+
+        static GameObject MakeBlock(Transform parent, string name, Vector2 pos, Vector2 size, Color color)
+        {
+            var go = new GameObject(name);
+            go.transform.SetParent(parent, false);
+            go.transform.position = pos;
+            var sr = go.AddComponent<SpriteRenderer>();
+            sr.sprite = SolidSprite();
+            sr.color = color;
+            sr.sortingOrder = 15;
+            go.transform.localScale = new Vector3(size.x, size.y, 1f);
+            var col = go.AddComponent<BoxCollider2D>();
+            col.isTrigger = true;
+            return go;
+        }
+
+        static Transform MakePoint(Transform parent, Vector2 worldPos)
+        {
+            var p = new GameObject("interactPoint").transform;
+            p.SetParent(parent, worldPositionStays: true);
+            p.position = worldPos;
+            return p;
+        }
+
+        static Sprite _solid;
+        static Sprite SolidSprite()
+        {
+            if (_solid != null) return _solid;
+            var tex = new Texture2D(2, 2);
+            var px = new Color[] { Color.white, Color.white, Color.white, Color.white };
+            tex.SetPixels(px); tex.Apply();
+            _solid = Sprite.Create(tex, new Rect(0, 0, 2, 2), new Vector2(0.5f, 0.5f), 2f);
+            return _solid;
+        }
+    }
+
+    /// <summary>密室 3 首帧一次性独白。</summary>
+    public class PrologueChamber3Director : MonoBehaviour
+    {
+        void Start()
+        {
+            const string kFlag = "prologue_entered_chamber3";
+            if (GameState.GetFlag(kFlag)) return;
+            GameState.SetFlag(kFlag, true);
+
+            var pc = PlayerController.Instance;
+            if (pc != null) pc.SetControllable(false);
+            var cs = gameObject.AddComponent<Cutscene>();
+            cs.Add(new WaitStep(0.4f))
+              .Add(new SayTextStep("这里是……洗礼池?那些陶罐里藏着什么。"));
+            cs.OnFinished += () => { if (pc != null) pc.SetControllable(true); };
+            cs.Play();
+        }
+    }
+}
