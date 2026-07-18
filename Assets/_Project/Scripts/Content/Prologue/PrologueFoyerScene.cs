@@ -40,33 +40,42 @@ namespace LostGoddess.Content
                 player.transform.localScale = s;
             }
 
-            // ── 交互物 4 件套 ────────────────────────────────────────────
-            //  x 坐标是"世界坐标",相机 clamp 到 [-17+ortho, 17-ortho] 范围
-            //  interactPoint 都对齐地平线 groundY
+            // ── 交互物摆位:严格对齐 TempleEntry 背景的真实视觉锚点 ─────────
+            //  背景图 3400×1200 px, PPU=100, 图中心=世界原点 → 像素 X 换算世界 X:
+            //    worldX = (pixelX - 1700) / 100
+            //  从视觉分析拿到的关键锚点:
+            //    · 拱形石门中心 3120 px    → 世界 X = +14.2  (画面右端 82%)
+            //    · 门口台阶      3002~3384 → 世界 X ≈ +13~+17
+            //    · 平台中央空旷  1200~2200 → 世界 X ≈ -5~+5  (适合摆工作台)
+            //    · 左角断柱残碑  320~430   → 世界 X ≈ -13.5  (适合摆展台/壁画)
+            //  动线设计:老人 SpawnX=-8,进入门厅时**左侧**能看到 Portal/壁画/展台
+            //    (回头一望的洞察氛围), **右侧**是一路走过去的目标(工作台→楼梯→石门)。
+            //    朝右主动线保留"从荒山走进庙门"的推进感,不打乱。
 
-            // 展台:门前 x=8(神庙入口画布"门中心"约在 x=8)
-            BuildPodium(root.transform, new Vector2(6f, groundY + 0.6f), groundY);
+            // 展台:左角断柱旁 x=-11(比断柱残碑靠右一点点,方便和老人交互),矮墩式石台
+            BuildPodium(root.transform, new Vector2(-11f, groundY + 0.6f), groundY);
 
-            // 组合工作台(中年拼投影仪):展台左侧 x=2
-            BuildAssembleTable(root.transform, new Vector2(2f, groundY + 0.5f), groundY);
+            // 组合工作台(中年拼投影仪):平台中央空旷区 x=0
+            BuildAssembleTable(root.transform, new Vector2(0f, groundY + 0.5f), groundY);
 
-            // 石门:x=9,略高于展台
-            BuildStoneDoor(root.transform, new Vector2(9f, groundY + 1.6f), groundY);
+            // 石门:严格对齐拱门中心 x=+14.2,高门位置
+            BuildStoneDoor(root.transform, new Vector2(14.2f, groundY + 1.6f), groundY);
 
-            // 楼梯废墟:x=-3(神庙入口左侧,靠近门厅左半侧)
-            BuildStairs(root.transform, new Vector2(-3f, groundY + 1.2f), groundY);
+            // 楼梯废墟:门左侧平台 x=+8("往二楼去"的动线锚点),占位期用矮墩表示
+            //   等美术在这个位置画一段坍塌石阶就自动对齐了
+            BuildStairs(root.transform, new Vector2(8f, groundY + 1.2f), groundY);
 
             // ── 岁月洞察显影物 2 件套 ────────────────────────────────────
-            // 壁画显影:x=-8,在楼梯左边墙上,悬浮高度 1.5,老年按 Q 时浮现
-            BuildMuralPhantom(root.transform, new Vector2(-8f, groundY + 2.2f));
+            // 壁画显影:左侧断柱表面 x=-13(与远景断柱严格对齐),悬浮墙面高度
+            BuildMuralPhantom(root.transform, new Vector2(-13f, groundY + 2.2f));
 
-            // 二楼高亮点:x=-3(与楼梯同 x),悬浮更高,老年按 Q 时脉动闪光
-            BuildUpperHallGlow(root.transform, new Vector2(-3f, groundY + 4.2f));
+            // 二楼高亮点:楼梯废墟正上方 x=+8,悬浮更高,老年按 Q 时脉动闪光
+            //   视觉逻辑:老人朝楼梯看时,头顶浮起"通往二楼"的高光
+            BuildUpperHallGlow(root.transform, new Vector2(8f, groundY + 4.2f));
 
             // ── 场景切换 Portal(左侧密室 3 = 切青年触发) ─────────────────
-            // 密室 3:x=-14 附近(场景最左端),暂时用一个 Portal 表示"往密室方向走"
-            //  当前 Prologue_Chamber3 场景 D6 才做,先埋 ScenePortal,点击提示"D6 补齐"
-            BuildChamber3Portal(root.transform, new Vector2(-15f, groundY), groundY);
+            // 密室 3:场景最左端 x=-15.5,视觉上"从门厅退到密林深处"
+            BuildChamber3Portal(root.transform, new Vector2(-15.5f, groundY), groundY);
 
             // ── 首帧演出 ────────────────────────────────────────────────
             root.AddComponent<PrologueFoyerDirector>();
