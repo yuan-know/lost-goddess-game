@@ -19,18 +19,26 @@ namespace LostGoddess.Content
 {
     public static class PrologueFoyerScene
     {
-        // TempleEntry 世界宽 34 单位,左端 -17,老人 spawn 距左端 3 = -14
-        public const float SpawnX = -14f;
+        // TempleEntry 世界宽 34 单位,左端 -17,相机可动 X min ≈ -8.11(ortho 5 × aspect 1.78)
+        // 让老人一进门厅就在屏幕左侧可见:SpawnX 卡在 -8(相机边界内 0.1 单位)
+        public const float SpawnX = -8f;
 
         public static void Build()
         {
-            Debug.Log($"[PrologueFoyerScene] Build 开始 CurrentEra={GameState.CurrentEra}");
             var root = SceneRoomBuilder.Build(SceneRoomBuilder.TempleEntry);
             float groundY = SceneRoomBuilder.TempleEntry.groundY;
 
             // 老人沿用当前 Era(从第 0 幕过来时是 Old)
             var player = PlayerBuilder.Build(GameState.CurrentEra, groundY, SpawnX);
-            Debug.Log($"[PrologueFoyerScene] Player 建好 name={player?.name} pos={player?.transform.position} PC.Instance={PlayerController.Instance}");
+
+            // 强制朝右(立绘默认朝左,scale.x=-|s| 表示朝右)
+            //  ── 让老人一进门厅就面朝展台/大门方向,视觉上"从荒山走进庙门"的连续感
+            if (player != null)
+            {
+                var s = player.transform.localScale;
+                s.x = -Mathf.Abs(s.x);
+                player.transform.localScale = s;
+            }
 
             // ── 交互物 4 件套 ────────────────────────────────────────────
             //  x 坐标是"世界坐标",相机 clamp 到 [-17+ortho, 17-ortho] 范围
