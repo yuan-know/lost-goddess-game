@@ -19,6 +19,57 @@ namespace LostGoddess
         {
             { Dialogues.demo_intro,  "……又是这样一扇门。我这把老骨头,还能推开它吗?" },
             { Dialogues.demo_locked, "锁着的。得先找到点亮它的办法。" },
+
+            // ── 前言(黑屏白字) ──
+            { Dialogues.prologue_0_prelude,
+              "很多年后,他依然会回想起初次踏入这座神庙的那个下午。\n" +
+              "而当时他太过年轻,只沉浸在找到神庙的兴奋中,并没有注意到其他。\n" +
+              "于是他花了几十年去回想那些被忽略的一切。\n" +
+              "而此刻,他正走在重返神庙的路上。" },
+
+            // ── 第 0 幕 荒山野道 ──
+            { Dialogues.prologue_0_01, "这么多年了,还是回到了这里……" },
+            { Dialogues.prologue_0_02, "什么都没变……这里的时间好像静止了……只有我,老得快要死了。" },
+            { Dialogues.prologue_0_03, "它也一直在这里……几十年来,它好像一直在看着我……" },
+
+            // ── 第一幕 神庙门厅 ──
+            { Dialogues.prologue_1_01,           "为什么什么声音都没有,风声、雷声好像全被隔绝在这座庙之外了……太安静了……" },
+            { Dialogues.prologue_1_02,           "门是锁死的,这好像缺了什么东西。这个形状是……" },
+            { Dialogues.prologue_1_insight_hint, "(按 Q 使用【岁月洞察】)" },
+            { Dialogues.prologue_1_mural,        "……墙上浮现出的图腾,像是从远古传来的低语。" },
+            { Dialogues.prologue_1_upper_glow,   "……上面那里,有什么东西在闪着幽光。" },
+            { Dialogues.prologue_1_cant_climb,   "这腿爬不上去了……先在周围看看有没有什么能用的吧。" },
+            { Dialogues.prologue_1_door_locked,  "门是锁死的,现在推不开。" },
+            { Dialogues.prologue_1_need_relic,   "我需要的东西,应该在上面……或者,先在周围看看有没有什么能用的吧。" },
+
+            // ── 第二幕 青年 ──
+            { Dialogues.prologue_2_awake,           "刚刚发生了什么?" },
+            { Dialogues.prologue_2_resolve,         "算了,不管了。好不容易找到神庙,我得赶快解开门锁,找到神像!" },
+            { Dialogues.prologue_2_got_crowbar,     "这玩意儿倒挺顺手的,这里好像没有其他东西能用了。我再去上面看看吧。" },
+            { Dialogues.prologue_2_pry_cage,        "咔——铁笼被撬开了。" },
+            { Dialogues.prologue_2_got_base,        "这是什么东西。等等,这个底座……好像和展台的形状挺像的。" },
+            { Dialogues.prologue_2_assemble_fail,   "你无法完成精密仪器拼接!" },
+            { Dialogues.prologue_2_gear_sound,     "这个声音……" },
+            { Dialogues.prologue_2_wrong_era_middle,"该死,怎么拼接不起来。算了。再看看有没有其他的东西能用吧。" },
+
+            // ── 第三幕 中年 ──
+            { Dialogues.prologue_3_awake,          "奇怪,这是哪?我不是在修表吗。" },
+            { Dialogues.prologue_3_combine,        "这两个,组合一下就可以得到……" },
+            { Dialogues.prologue_3_projector_use,  "但这个在这里有什么用呢。" },
+            { Dialogues.prologue_3_go_downstairs,  "还是先下楼看看吧。" },
+
+            // ── 第四幕 大门开启 & 剧情杀 ──
+            { Dialogues.prologue_4_door_open,   "大门缓缓开启,门后通道却并没有变得明亮,通道的尽头,有黑雾正在凝聚成形……" },
+            { Dialogues.prologue_4_dark_fog,    "不对……那是什么,那是什么!" },
+            { Dialogues.prologue_4_frozen,      "你转身想跑,但两条腿像灌了铅一样无法动弹……" },
+            { Dialogues.prologue_4_switch_hint, "(按 1 切换青年)" },
+            { Dialogues.prologue_4_died,        "怎么就这么……死了?" },
+            { Dialogues.prologue_4_awakening,   "等等,死了还能想这件事吗?" },
+
+            // ── Era 不匹配的通用提示 ──
+            { Dialogues.wrong_era_need_young,  "这需要一双灵活的手,或者强壮的臂膀。此刻我做不到。" },
+            { Dialogues.wrong_era_need_middle, "你毛躁的双手无法完成精密的拼接。" },
+            { Dialogues.wrong_era_need_old,    "你还没有那双能看穿岁月的眼睛。" },
         };
 
         static DialogueUI _ui;
