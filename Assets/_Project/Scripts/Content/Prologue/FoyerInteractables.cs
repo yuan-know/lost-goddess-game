@@ -58,8 +58,7 @@ namespace LostGoddess.Content
     // ─────────────────────────────────────────────────────────────────────
     //  Interact_StoneDoor —— 石门(黄铜机械锁死的大门)
     //   · 未开:播 prologue_1_door_locked
-    //   · 已开(Prologue_DoorOpen=true):跳 Chapter1_Hall(触发第四幕 Cutscene)
-    //     —— D5 阶段先直接跳 Chapter1_Hall,第四幕 Cutscene(黑雾追击)在 D7 做
+    //   · 已开(Prologue_DoorOpen=true):跳 Prologue_Chase 触发黑雾追击剧情杀(D7)
     // ─────────────────────────────────────────────────────────────────────
     public class Interact_StoneDoor : InteractableBase
     {
@@ -68,17 +67,51 @@ namespace LostGoddess.Content
             if (GameState.GetFlag(Flags.Prologue_DoorOpen))
             {
                 PlaySfx(Sfx.mechanism_rumble);
-                DialogueSystem.ShowText("大门轰然开启——门后黑影凝聚成形。", () =>
+                DialogueSystem.Show(Dialogues.prologue_4_door_open, () =>
                 {
-                    // TODO D7: 跳 Prologue_Chase 播黑雾追击 Cutscene
-                    //         再由 Chase 结尾跳 Chapter1_Hall
-                    SceneLoader.GoToRoom(Rooms.Chapter1_Hall);
+                    SceneLoader.GoToRoom(Rooms.Prologue_Chase);
                 });
             }
             else
             {
                 DialogueSystem.Show(Dialogues.prologue_1_door_locked);
             }
+        }
+    }
+
+    // ─────────────────────────────────────────────────────────────────────
+    //  Interact_Assemble_Middle —— 组合工作台(中年拼 FocusLens + BrassBase → LightProjector)
+    //  D7 补:落地清单 §2.6 要求中年下楼后在门厅有个"拼投影仪"的位置。
+    //  · 老年/青年点:播提示对白(能力不足)
+    //  · 中年 + 持 FocusLens + BrassBase:两件消耗 → 拿到 LightProjector
+    //  · 已拿过 LightProjector:提示"投影仪已在包里,可以带去展台"
+    // ─────────────────────────────────────────────────────────────────────
+    public class Interact_Assemble_Middle : InteractableBase
+    {
+        public override void OnClick()
+        {
+            if (InventorySystem.Has(Items.LightProjector))
+            {
+                DialogueSystem.ShowText("光幕投影仪已经在包里。带去门前的展台。");
+                return;
+            }
+            if (GameState.CurrentEra != Era.Middle)
+            {
+                DialogueSystem.Show(Dialogues.wrong_era_need_middle);
+                return;
+            }
+            if (!InventorySystem.Has(Items.FocusLens) || !InventorySystem.Has(Items.BrassBase))
+            {
+                DialogueSystem.ShowText("这里是拼装的地方,但我手里的零件还不够。透镜和底座,两样都得凑齐。");
+                return;
+            }
+            InventorySystem.Remove(Items.FocusLens);
+            InventorySystem.Remove(Items.BrassBase);
+            InventorySystem.Add(Items.LightProjector);
+            DialogueSystem.Show(Dialogues.prologue_3_combine, () =>
+            {
+                DialogueSystem.Show(Dialogues.prologue_3_projector_use);
+            });
         }
     }
 

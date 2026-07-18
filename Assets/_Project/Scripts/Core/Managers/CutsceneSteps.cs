@@ -188,6 +188,18 @@ namespace LostGoddess
         }
     }
 
+    /// <summary>等玩家按指定键(如剧情杀里"按 1 切青年"提示)。</summary>
+    public class AwaitKeyStep : CutsceneStep
+    {
+        public KeyCode key;
+        public AwaitKeyStep(KeyCode k) { key = k; }
+        public override IEnumerator Execute(Cutscene owner)
+        {
+            yield return null;
+            while (!Input.GetKeyDown(key)) yield return null;
+        }
+    }
+
     // ------------------------------------------------------------------------
     //  FadeOverlayColored —— Cutscene 专用彩色全屏 overlay(区别于 SceneLoader 的黑幕)
     //  单例,DontDestroyOnLoad;可 FadeToColor(白闪/红警等)+ FadeToClear。

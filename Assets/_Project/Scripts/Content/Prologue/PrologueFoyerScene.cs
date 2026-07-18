@@ -47,6 +47,9 @@ namespace LostGoddess.Content
             // 展台:门前 x=8(神庙入口画布"门中心"约在 x=8)
             BuildPodium(root.transform, new Vector2(6f, groundY + 0.6f), groundY);
 
+            // 组合工作台(中年拼投影仪):展台左侧 x=2
+            BuildAssembleTable(root.transform, new Vector2(2f, groundY + 0.5f), groundY);
+
             // 石门:x=9,略高于展台
             BuildStoneDoor(root.transform, new Vector2(9f, groundY + 1.6f), groundY);
 
@@ -77,6 +80,17 @@ namespace LostGoddess.Content
             var go = MakeBlock(parent, "Interact_Podium", pos, new Vector2(1.2f, 0.9f),
                 new Color(0.55f, 0.42f, 0.25f, 0.85f));
             var interact = go.AddComponent<Interact_Podium>();
+            interact.highlightTarget = go.GetComponent<SpriteRenderer>();
+            interact.interactPoint = MakePoint(go.transform, new Vector2(pos.x - 1.2f, groundY));
+            return go;
+        }
+
+        static GameObject BuildAssembleTable(Transform parent, Vector2 pos, float groundY)
+        {
+            // 占位方块:灰绿色矮工作台
+            var go = MakeBlock(parent, "Interact_Assemble_Middle", pos, new Vector2(1.4f, 0.7f),
+                new Color(0.35f, 0.4f, 0.3f, 0.85f));
+            var interact = go.AddComponent<Interact_Assemble_Middle>();
             interact.highlightTarget = go.GetComponent<SpriteRenderer>();
             interact.interactPoint = MakePoint(go.transform, new Vector2(pos.x - 1.2f, groundY));
             return go;
