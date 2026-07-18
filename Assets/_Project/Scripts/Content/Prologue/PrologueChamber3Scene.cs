@@ -25,10 +25,12 @@ namespace LostGoddess.Content
 
         public static void Build()
         {
-            // 场景:先复用 TempleEntry 三层视差作占位背景(色调接近石庙)
-            var room = SceneRoomBuilder.Build(SceneRoomBuilder.TempleEntry);
+            // 场景:美术已给「神庙一楼密室」专用图,SceneRoomBuilder 会自动加载
+            //   Resources/Scenes/TempleChamber1F/{bg_far, prop_pottery, bg_full}。
+            //   现只有 2 张分层图(bg_far + prop_pottery),bg_mid/bg_near 缺图 warn 无害。
+            var room = SceneRoomBuilder.Build(SceneRoomBuilder.TempleChamber1F);
             room.name = "Room_" + Rooms.Prologue_Chamber3;
-            float groundY = SceneRoomBuilder.TempleEntry.groundY;
+            float groundY = SceneRoomBuilder.TempleChamber1F.groundY;
 
             // 老人 - 按当前 Era(从门厅进来通常是 Old)
             PlayerBuilder.Build(GameState.CurrentEra, groundY, SpawnX);

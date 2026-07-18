@@ -70,6 +70,44 @@ namespace LostGoddess.Content
             parallaxNear = 0.00f,
         };
 
+        // 【神庙一楼密室】—— Chamber3 洗礼池场景专用美术
+        //  美术:Scenes/TempleChamber1F/{bg_far, prop_pottery, bg_full}
+        //   · bg_far.png(3400×1200)= 洗礼池全景背景
+        //   · prop_pottery.png(3400×1200)= 陶罐层(全画布位置,与背景对齐)
+        //  当前只有 2 层,SceneRoomBuilder 找不到 bg_mid/bg_near 会 warn(可忽略);
+        //  把 prop_pottery 借用 "bg_near" 通道让它落在前景层(sorting 60,alpha=0.55)。
+        //  D5 待办:等美术补 bg_mid/bg_near 或用 SceneRoomBuilder 改造成"任意层名"。
+        public static readonly SceneDef TempleChamber1F = new SceneDef
+        {
+            roomName = "TempleChamber1F",
+            bgPixelWidth = 3400f,
+            bgPixelHeight = 1200f,
+            bgPPU = 100f,
+            groundFromBottom = 0.13f,
+            groundY = -3.44f,
+            parallaxFar = 0.00f,
+            parallaxMid = 0.00f,
+            parallaxNear = 0.00f,
+        };
+
+        // 【前厅二楼坍塌的回廊】—— UpperHall 铁笼齿轮箱场景专用美术
+        //  美术:Scenes/UpperHall/{bg_far, bg_near, bg_full}
+        //   · bg_far.png(2544×912)= 回廊背景(比舞台窄,居中显示)
+        //   · bg_near.png(3400×1200)= 前景(铁笼齿轮箱等)
+        //  bg_far 尺寸偏小,视差 factor 保持 0 让它跟随相机居中,避免露边。
+        public static readonly SceneDef PrologueUpperHall = new SceneDef
+        {
+            roomName = "UpperHall",
+            bgPixelWidth = 3400f,
+            bgPixelHeight = 1200f,
+            bgPPU = 100f,
+            groundFromBottom = 0.13f,
+            groundY = -3.44f,
+            parallaxFar = 0.00f,
+            parallaxMid = 0.00f,
+            parallaxNear = 0.00f,
+        };
+
         /// <summary>按定义构建场景:三层背景 + WalkableArea + 相机跟随。返回根节点。</summary>
         public static GameObject Build(SceneDef def)
         {

@@ -21,10 +21,12 @@ namespace LostGoddess.Content
 
         public static void Build()
         {
-            // 场景:先用 TempleEntry 视差占位(等美术出 UpperHall 三层图)
-            var room = SceneRoomBuilder.Build(SceneRoomBuilder.TempleEntry);
+            // 场景:美术已给「前厅二楼坍塌的回廊」专用图,SceneRoomBuilder 会自动加载
+            //   Resources/Scenes/UpperHall/{bg_far, bg_near, bg_full}。
+            //   bg_mid 缺图 warn 无害;bg_near 是前景铁笼/齿轮箱剪影。
+            var room = SceneRoomBuilder.Build(SceneRoomBuilder.PrologueUpperHall);
             room.name = "Room_" + Rooms.Prologue_UpperHall;
-            float groundY = SceneRoomBuilder.TempleEntry.groundY;
+            float groundY = SceneRoomBuilder.PrologueUpperHall.groundY;
 
             // 玩家:从楼梯爬上来的必然是青年 —— 但保守起见,不强制切 Era,
             //       只按当前 Era 建 Player。剧情里必然是 Young。
