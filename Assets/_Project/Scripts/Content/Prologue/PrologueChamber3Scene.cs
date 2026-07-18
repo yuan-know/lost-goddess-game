@@ -95,7 +95,29 @@ namespace LostGoddess.Content
             go.transform.localScale = new Vector3(size.x, size.y, 1f);
             var col = go.AddComponent<BoxCollider2D>();
             col.isTrigger = true;
+            // 占位期挂个文字标签,让用户一眼看清"哪个方块是啥"
+            AddDebugLabel(go, name + $"\n({pos.x:F1},{pos.y:F1})");
             return go;
+        }
+
+        /// <summary>在占位方块头顶加文字标签(占位期专用,美术出图后可整块移除)。</summary>
+        static void AddDebugLabel(GameObject host, string text)
+        {
+            var lbl = new GameObject("_debug_label");
+            lbl.transform.SetParent(host.transform, false);
+            var hs = host.transform.localScale;
+            lbl.transform.localScale = new Vector3(1f / Mathf.Max(0.01f, hs.x),
+                                                    1f / Mathf.Max(0.01f, hs.y), 1f);
+            lbl.transform.localPosition = new Vector3(0f, 0.55f, 0f);
+            var tm = lbl.AddComponent<TextMesh>();
+            tm.text = text;
+            tm.anchor = TextAnchor.LowerCenter;
+            tm.alignment = TextAlignment.Center;
+            tm.fontSize = 40;
+            tm.characterSize = 0.05f;
+            tm.color = new Color(1f, 0.95f, 0.6f);
+            var mr = lbl.GetComponent<MeshRenderer>();
+            mr.sortingOrder = 100;
         }
 
         static Transform MakePoint(Transform parent, Vector2 worldPos)

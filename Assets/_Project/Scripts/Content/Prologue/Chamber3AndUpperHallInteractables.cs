@@ -37,7 +37,7 @@ namespace LostGoddess.Content
             {
                 if (!InventorySystem.Has(Items.PotteryKey))
                     InventorySystem.Add(Items.PotteryKey);
-                DialogueSystem.ShowText("碎陶片里滚出一枚锈迹斑斑的钥匙,像被什么人特意藏在这里。");
+                DialogueSystem.ShowText("碎陶片里滚出一枚锈迹斑斑的钥匙——像是给池底那个锁孔用的。");
             }
             else
             {
