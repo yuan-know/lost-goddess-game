@@ -174,6 +174,11 @@ namespace LostGoddess
             float t = 0f;
             while (!loaded && t < 5f) { t += Time.deltaTime; yield return null; }
             SceneLoader.OnAfterLoad -= handler;
+            // 关键:场景已切,新 Player 是新对象。旧 Cutscene 若继续跑末尾 SetControllable(true) 是无害的,
+            // 但若 owner 已随旧场景根 Destroy,协程也就断了——两条路都不会污染新场景。
+            // 但要防"旧 Cutscene 仍活着 + 后面还有 step"的情况:切场景应该视为 Cutscene 的终点,
+            // 立即 Stop 掉,避免后续 step 作用到新 Player 上。
+            if (owner != null) owner.Stop();
         }
     }
 

@@ -255,8 +255,23 @@ namespace LostGoddess
         {
             // 清掉旧房间内容(保留 GameManager / 相机 / 常驻 UI)
             DestroyRoomObjects();
+            // 等一帧,确保 Destroy 生效(WalkableArea.OnDisable / PlayerController.OnDestroy 都跑完)
+            yield return null;
             BuildRoomContent(roomName);
             yield return null;
+            // 新场景就绪后:强制解锁角色,修正 WalkableArea.Current(防旧场景的 Cutscene 泄漏 SetControllable(false))
+            if (PlayerController.Instance != null)
+                PlayerController.Instance.SetControllable(true);
+            // 强制修正 WalkableArea.Current:如果场景里有多个 WalkableArea(旧的没清干净),
+            // 取新场景根节点下的那一个
+            var newRoot = GameObject.Find("Room_" + roomName)
+                       ?? GameObject.Find("Room_TempleEntry")   // Foyer 的场景根其实叫 Room_TempleEntry
+                       ?? GameObject.Find("Room_DarkForest");
+            if (newRoot != null)
+            {
+                var wa = newRoot.GetComponentInChildren<WalkableArea>();
+                if (wa != null && wa.enabled) { wa.enabled = false; wa.enabled = true; }  // 重触发 OnEnable → Current = wa
+            }
         }
 
         void RebuildAfterLoad()
