@@ -39,10 +39,13 @@ namespace LostGoddess.Content
             bgPixelWidth = 4250f,
             bgPixelHeight = 1200f,
             bgPPU = 100f,
-            // mid 层石质地面顶面约在图底 13%(前次目测合成图 20% 偏高,人物浮空)
-            // 运行时可用 [ / ] 键微调,调好后回写这里
+            // 目标:背景图**底边**贴相机视口底(Y=-5),画上地平线在图底往上 13%
+            //   imageBottomY = groundY - worldHeight * groundFromBottom
+            //   要 imageBottomY = -5,   worldHeight = 12,   groundFromBottom = 0.13
+            //   → groundY = -5 + 12*0.13 = -3.44
+            // 老人脚底跟着落到 -3.44,与画上地面对齐
             groundFromBottom = 0.13f,
-            groundY = -2.4f,
+            groundY = -3.44f,
             parallaxFar = 0.20f,
             parallaxMid = 0.55f,
             parallaxNear = 1.00f,
@@ -54,9 +57,9 @@ namespace LostGoddess.Content
             bgPixelWidth = 3400f,
             bgPixelHeight = 1200f,
             bgPPU = 100f,
-            // 神庙入口石砌平台顶面约在图底 13%(可用 [ / ] 微调)
+            // 同上:图底贴视口底 Y=-5,老人脚底 -3.44
             groundFromBottom = 0.13f,
-            groundY = -2.4f,
+            groundY = -3.44f,
             parallaxFar = 0.20f,
             parallaxMid = 0.55f,
             parallaxNear = 1.00f,
@@ -73,12 +76,9 @@ namespace LostGoddess.Content
             // 图底 Y(BottomCenter 锚点下,SpriteRenderer 的 transform.y 就是图底 Y)
             // 我们要画上地平线落在 def.groundY:
             //   image.bottomY = def.groundY - worldHeight * def.groundFromBottom
+            // 已在 SceneDef 里调好参数使 imageBottomY = -5(贴相机视口底),
+            //   → 底部不再露出灰底,BottomExtender 已废除。
             float imageBottomY = def.groundY - worldHeight * def.groundFromBottom;
-
-            // 底部延展面板:背景图底(Y ≈ -3.96)与相机视口底(Y = -5)之间约 1 单位间隙,
-            // 若不填就露出相机 clearColor(棕色 skybox / 或纯色)。挂到相机下随相机走,
-            // 颜色取"背景近层底色"近似值——冷灰蓝,与暗森林 / 神庙入口都无违和。
-            BuildBottomExtender(root.transform, def);
 
             // 三层背景(排序:远最靠后,近最靠前;老年 rigged 部位 sortingOrder=29~41,
             // 前景 near 要 > 41 才能"挡住"老人;中景/远景在老人之后画)
