@@ -82,14 +82,14 @@ namespace LostGoddess.Content
             //   → 底部不再露出灰底,BottomExtender 已废除。
             float imageBottomY = def.groundY - worldHeight * def.groundFromBottom;
 
-            // 三层背景(排序:远最靠后,近层放在老人之后但在中层之前;
-            // ── 原来 bg_near sortingOrder=60 是"前景遮挡老人",但当前 DarkForest 画的
-            //   前景大树影占屏太大(整块黑影),会把老人完全吞掉。改为 -10(在老人之前的
-            //   老人身后)让"最近层"仍然视觉上最鲜明,但不遮挡角色。
-            //   等美术出更小尺寸的真前景遮挡物(比如一根柱子/一小丛草)再单独加高 sortingOrder。
-            BuildLayer(root.transform, def, "bg_far",  imageBottomY, def.parallaxFar,  sortingOrder: -30);
-            BuildLayer(root.transform, def, "bg_mid",  imageBottomY, def.parallaxMid,  sortingOrder: -20);
-            BuildLayer(root.transform, def, "bg_near", imageBottomY, def.parallaxNear, sortingOrder: -10);
+            // 三层背景(排序:远最靠后 / 中间层 / 近层是"半透明前景遮挡")
+            //   bg_near sortingOrder=60 恢复"在老人之前"(前景遮挡感),
+            //   但把 alpha 降到 0.55 → 老人被前景剪影"薄薄挡住"而不是完全吞掉,
+            //   同时前景剪影的形体依然清晰(黑影层次感)。等美术出小型前景元素
+            //   (柱子/草丛)再单独用 alpha=1 摆真前景遮挡。
+            BuildLayer(root.transform, def, "bg_far",  imageBottomY, def.parallaxFar,  sortingOrder: -30, alpha: 1.0f);
+            BuildLayer(root.transform, def, "bg_mid",  imageBottomY, def.parallaxMid,  sortingOrder: -20, alpha: 1.0f);
+            BuildLayer(root.transform, def, "bg_near", imageBottomY, def.parallaxNear, sortingOrder:  60, alpha: 0.55f);
 
             // 可走区:X 边界按背景宽度(相机跟随时,人物走到边缘停下,不出背景)
             // 注意:老人不能走到贴边,预留 padding。
@@ -121,7 +121,7 @@ namespace LostGoddess.Content
             return root;
         }
 
-        static void BuildLayer(Transform parent, SceneDef def, string spriteName, float bottomY, float factor, int sortingOrder)
+        static void BuildLayer(Transform parent, SceneDef def, string spriteName, float bottomY, float factor, int sortingOrder, float alpha = 1f)
         {
             var sp = Resources.Load<Sprite>($"Scenes/{def.roomName}/{spriteName}");
             if (sp == null)
@@ -135,6 +135,7 @@ namespace LostGoddess.Content
             var sr = go.AddComponent<SpriteRenderer>();
             sr.sprite = sp;
             sr.sortingOrder = sortingOrder;
+            if (alpha < 0.999f) sr.color = new Color(1f, 1f, 1f, alpha);
             var px = go.AddComponent<ParallaxLayer>();
             px.factor = factor;
         }
