@@ -8,7 +8,7 @@ using System.Collections.Generic;
 
 namespace LostGoddess
 {
-    /// <summary>时代/形态(契约 §1)。分章固定:进章时确定,整章不变。</summary>
+    /// <summary>时代/形态(契约 §1)。序幕在同一场景内可切多次(策划 2026-07-18 已定)。</summary>
     public enum Era { Young, Middle, Old }
 
     /// <summary>整个存档的数据。可被 JsonUtility / Newtonsoft 序列化。</summary>
@@ -23,6 +23,9 @@ namespace LostGoddess
         public List<bool>   flagVals = new List<bool>();
 
         public List<string> items = new List<string>();
+
+        // 已解锁的形态(玩家自由切换只在解锁过的 Era 之间);序幕从 Old 开始
+        public List<Era> unlockedEras = new List<Era> { Era.Old };
 
         // ── 运行时字典(不参与序列化,加载时从 List 重建)──
         [System.NonSerialized] public Dictionary<string, bool> flags = new Dictionary<string, bool>();
@@ -47,6 +50,8 @@ namespace LostGoddess
             for (int i = 0; i < n; i++)
                 flags[flagKeys[i]] = flagVals[i];
             if (items == null) items = new List<string>();
+            if (unlockedEras == null || unlockedEras.Count == 0)
+                unlockedEras = new List<Era> { Era.Old };
         }
     }
 }

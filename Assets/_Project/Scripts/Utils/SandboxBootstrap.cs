@@ -30,6 +30,7 @@ namespace LostGoddess
         void Start()
         {
             EnsureGameManager();
+            PlayerBuilder.EnableAutoRebuild();
 
             // 注册"程序化房间构建器":切到任何没有 .unity 的房间名时,重建一个占位房
             SceneLoader.ProceduralRoomBuilder = BuildRoomProcedural;
@@ -173,101 +174,17 @@ namespace LostGoddess
             wa.maxX = 8f;
         }
 
-        // 切换三形态(验证用):销毁当前老人 → 改 Era → 原地重建立绘。相机/房间/背包不变。
+        // 切换三形态(验证用):调 GameState.SetEra → PlayerBuilder 自动重建(经 OnEraChanged)
         void SwitchEra(Era era)
         {
             if (GameState.CurrentEra == era) return;
-            GameState.CurrentEra = era;
-            var old = GameObject.Find("Player");
-            if (old != null) Destroy(old);
-            BuildPlayer();
+            GameState.SetEra(era);  // 会触发 OnEraChanged → PlayerBuilder 重建
             Flash($"切换形态: {era}");
         }
 
         void BuildPlayer()
         {
-            string spriteName = EraToSpriteName(GameState.CurrentEra);
-
-            // 1) 优先加载骨骼动画 Prefab(Resources/Characters_Rigged/{era}.prefab)——含 SpriteSkin + Animator
-            var riggedPrefab = Resources.Load<GameObject>("Characters_Rigged/" + spriteName);
-
-            GameObject go;
-            SpriteRenderer sr = null;
-            Animator anim = null;
-
-            if (riggedPrefab != null)
-            {
-                go = Instantiate(riggedPrefab);
-                go.name = "Player";
-                go.transform.position = new Vector2(0f, GroundY);
-
-                // 骨骼版 PSB 尺寸远大于像素(Unity 单位),缩到与占位方块一个量级。
-                // ——psb 里部位相对 root 位置 y≈10,加上部位 sprite 本身高度,原始约 15 单位高;
-                // 想让人物有 ~1.8 单位高,scale ≈ 0.12。先给 0.12,不合适再调。
-                // 之前 0.006 是为扁 sprite 那份算的(psb 500px),对 rigged 版会缩到看不见。
-                go.transform.localScale = Vector3.one * 0.12f;
-
-                // 找一个 SpriteRenderer 作为翻转/排序参考(取任意可见的 body 部位)
-                sr = go.GetComponentInChildren<SpriteRenderer>();
-                anim = go.GetComponent<Animator>();
-                if (anim == null) anim = go.GetComponentInChildren<Animator>();
-
-                // 加碰撞让"点自己"也能工作(整体 bounding box)
-                var col = go.AddComponent<BoxCollider2D>();
-                col.isTrigger = true;
-                col.size = new Vector2(1.2f, 2.4f);
-                col.offset = new Vector2(0, 1.2f);
-            }
-            else
-            {
-                // 2) 回退:静态立绘(Resources/Characters/{era})
-                Sprite art = Resources.Load<Sprite>("Characters/" + spriteName);
-                if (art != null)
-                {
-                    go = new GameObject("Player");
-                    go.transform.position = new Vector2(0f, GroundY);
-                    sr = go.AddComponent<SpriteRenderer>();
-                    sr.sprite = art;
-                    var col = go.AddComponent<BoxCollider2D>();
-                    col.isTrigger = true;
-                    col.size = sr.sprite.bounds.size;
-                    col.offset = sr.sprite.bounds.center;
-                }
-                else
-                {
-                    go = BuildBlock("Player", new Vector2(0f, GroundY), new Vector2(0.8f, 1.8f),
-                        new Color(0.6f, 0.2f, 0.2f));
-                    sr = go.GetComponent<SpriteRenderer>();
-                }
-            }
-
-            var pc = go.AddComponent<PlayerController>();
-            pc.moveSpeed = EraToSpeed(GameState.CurrentEra);
-            // 骨骼版每个部位都有自己的 sortingOrder(内部叠放),不能被 PlayerController 覆盖
-            pc.sortingTarget = (anim != null) ? null : sr;
-            pc.animator = anim;              // 有骨骼就接上 Animator,自动播 Idle/Walk
-            pc.spriteFacesRight = false;     // 老人立绘默认朝左
-            pc.Teleport(new Vector2(0f, GroundY));
-        }
-
-        static string EraToSpriteName(Era era)
-        {
-            switch (era)
-            {
-                case Era.Young: return "young";
-                case Era.Middle: return "middle";
-                default: return "old";
-            }
-        }
-
-        static float EraToSpeed(Era era)
-        {
-            switch (era)
-            {
-                case Era.Young: return 1.8f;   // 青年:快、轻盈
-                case Era.Middle: return 1.3f;  // 中年:中速沉稳
-                default: return 0.9f;          // 老年:慢、拖拽
-            }
+            PlayerBuilder.Build(GameState.CurrentEra, GroundY, 0f);
         }
 
         // ── 程序化房间构建器(切到无 .unity 房间时)──

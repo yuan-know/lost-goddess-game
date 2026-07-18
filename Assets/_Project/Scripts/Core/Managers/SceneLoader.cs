@@ -25,6 +25,12 @@ namespace LostGoddess
         /// 验证期由 Bootstrap 注册。为 null 时走标准 LoadScene。</summary>
         public static Func<string, IEnumerator> ProceduralRoomBuilder;
 
+        /// <summary>切换完成后触发(新房间已就位,淡入完毕前)。参数=新房间名。</summary>
+        public static event Action<string> OnAfterLoad;
+
+        /// <summary>暴露全屏淡入淡出遮罩,供 Cutscene 步骤等复用(白闪 / 屏幕抖等)。</summary>
+        public static FadeOverlay Fade => _fade;
+
         public const float DefaultFade = 0.4f;
 
         public static void Init(MonoBehaviour host)
@@ -70,6 +76,7 @@ namespace LostGoddess
 
             yield return _fade.FadeIn(fadeTime);
             _busy = false;
+            OnAfterLoad?.Invoke(sceneName);
         }
 
         static bool CanLoadScene(string sceneName)
