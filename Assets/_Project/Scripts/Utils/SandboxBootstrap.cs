@@ -118,15 +118,28 @@ namespace LostGoddess
 
         void BuildCamera()
         {
-            if (Camera.main != null) return;
-            var go = new GameObject("Main Camera");
-            go.tag = "MainCamera";
-            var cam = go.AddComponent<Camera>();
-            cam.orthographic = true;           // 固定单屏
+            if (Camera.main == null)
+            {
+                var go = new GameObject("Main Camera");
+                go.tag = "MainCamera";
+                var newCam = go.AddComponent<Camera>();
+                newCam.orthographic = true;           // 固定单屏
+                newCam.orthographicSize = 5f;
+                newCam.transform.position = new Vector3(0, 0, -10);
+                go.AddComponent<ClickInputManager>();
+            }
+
+            // 无论是新建还是场景里已有的相机,强制固定这些属性:
+            //  · 正交(2D 单屏)
+            //  · 纯色清屏(不是 Skybox,否则底部露出棕色地平线)
+            //  · 深色背景(与序幕氛围一致)
+            var cam = Camera.main;
+            cam.orthographic = true;
             cam.orthographicSize = 5f;
-            cam.transform.position = new Vector3(0, 0, -10);
-            cam.backgroundColor = new Color(0.12f, 0.12f, 0.15f);
-            go.AddComponent<ClickInputManager>();
+            cam.clearFlags = CameraClearFlags.SolidColor;
+            cam.backgroundColor = new Color(0.06f, 0.06f, 0.08f);  // 近黑,不喧宾夺主
+            if (cam.GetComponent<ClickInputManager>() == null)
+                cam.gameObject.AddComponent<ClickInputManager>();
         }
 
         // ── 房间内容 ──

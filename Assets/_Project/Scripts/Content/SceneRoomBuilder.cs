@@ -75,6 +75,11 @@ namespace LostGoddess.Content
             //   image.bottomY = def.groundY - worldHeight * def.groundFromBottom
             float imageBottomY = def.groundY - worldHeight * def.groundFromBottom;
 
+            // 底部延展面板:背景图底(Y ≈ -3.96)与相机视口底(Y = -5)之间约 1 单位间隙,
+            // 若不填就露出相机 clearColor(棕色 skybox / 或纯色)。挂到相机下随相机走,
+            // 颜色取"背景近层底色"近似值——冷灰蓝,与暗森林 / 神庙入口都无违和。
+            BuildBottomExtender(root.transform, def);
+
             // 三层背景(排序:远最靠后,近最靠前;老年 rigged 部位 sortingOrder=29~41,
             // 前景 near 要 > 41 才能"挡住"老人;中景/远景在老人之后画)
             BuildLayer(root.transform, def, "bg_far",  imageBottomY, def.parallaxFar,  sortingOrder: -30);
@@ -125,6 +130,51 @@ namespace LostGoddess.Content
             sr.sortingOrder = sortingOrder;
             var px = go.AddComponent<ParallaxLayer>();
             px.factor = factor;
+        }
+
+        /// <summary>底部延展面板:填补背景图底到相机视口底之间的空隙。
+        /// 挂在相机子物体上跟随水平位移,足够宽/高即可,颜色贴近背景近层地面色。</summary>
+        static void BuildBottomExtender(Transform parent, SceneDef def)
+        {
+            var cam = Camera.main;
+            if (cam == null) return;
+
+            var go = new GameObject("_BottomExtender");
+            go.transform.SetParent(parent, false);
+            // 使用 SpriteRenderer 画一块纯色矩形(与 bg_near 同一 sortingOrder 层,但更靠下用 sortingOrder 数值区分)
+            var sr = go.AddComponent<SpriteRenderer>();
+            sr.sprite = SolidWhiteSprite();
+            // 冷灰蓝,与暗森林 / 神庙入口下沿石地都协调;略暗防止"过亮出戏"
+            sr.color = new Color(0.11f, 0.13f, 0.15f);
+            // near 层前景是 sortingOrder=60,我们要挡住 skybox 但不挡背景 → 设 -100(最远)
+            sr.sortingOrder = -100;
+
+            // 面板尺寸:宽=舞台 + 屏幕(保险),高=相机视口全高
+            //  · 世界宽 def.bgPixelWidth/def.bgPPU + 相机屏幕宽(cam.orthographicSize * 2 * cam.aspect)
+            //  · 高:相机视口全高(cam.orthographicSize * 2 = 10 单位)
+            float sceneWidth = def.bgPixelWidth / def.bgPPU;
+            float screenWidth = cam.orthographicSize * 2f * cam.aspect;
+            float w = sceneWidth + screenWidth + 4f;  // 富余 4
+            float h = cam.orthographicSize * 2f + 2f; // 富余 2
+
+            // SolidWhiteSprite PPU=1(1 像素 = 1 单位),localScale 直接等于世界大小
+            go.transform.localScale = new Vector3(w, h, 1f);
+            // 让面板顶边正好卡在图底 Y(bg 底) → 中心 Y = bg底 - h/2
+            //  这样面板正好托住背景,不会盖住任何背景画面
+            float imageBottomY = def.groundY - (def.bgPixelHeight / def.bgPPU) * def.groundFromBottom;
+            go.transform.position = new Vector3(0f, imageBottomY - h * 0.5f, 0f);
+        }
+
+        static Sprite _solid;
+        static Sprite SolidWhiteSprite()
+        {
+            if (_solid != null) return _solid;
+            var tex = new Texture2D(2, 2);
+            var px = new Color[] { Color.white, Color.white, Color.white, Color.white };
+            tex.SetPixels(px); tex.Apply();
+            // PPU=2:2px 纹理 = 1 单位,localScale 直接等于世界尺寸(便于用世界单位算)
+            _solid = Sprite.Create(tex, new Rect(0, 0, 2, 2), new Vector2(0.5f, 0.5f), 2f);
+            return _solid;
         }
     }
 }
