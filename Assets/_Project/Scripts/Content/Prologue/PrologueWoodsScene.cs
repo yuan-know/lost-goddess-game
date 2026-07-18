@@ -26,9 +26,9 @@ namespace LostGoddess.Content
     {
         // 舞台宽 = DarkForest 42.5 单位(bg 4250×1200 / PPU 100)
         // 老人走得慢(0.9 单位/秒),两段各控制在 ~11 单位内(≈12s),别把观众看睡着
-        const float SpawnX = -14f;
-        const float WalkPoint1 = -3f;
-        const float WalkPoint2 = 8f;
+        public const float SpawnX = -14f;
+        public const float WalkPoint1 = -3f;
+        public const float WalkPoint2 = 8f;
 
         public static void Build()
         {
@@ -69,13 +69,13 @@ namespace LostGoddess.Content
                 .Add(new SayStep(Dialogues.prologue_0_01))
 
                 // 走到旧标记附近
-                .Add(new WalkPlayerToStep(WalkPoint1))
+                .Add(new WalkPlayerToStep(PrologueWoodsScene.WalkPoint1))
 
                 // 老年独白 2
                 .Add(new SayStep(Dialogues.prologue_0_02))
 
                 // 走近神庙轮廓
-                .Add(new WalkPlayerToStep(WalkPoint2))
+                .Add(new WalkPlayerToStep(PrologueWoodsScene.WalkPoint2))
 
                 // 老年独白 3
                 .Add(new SayStep(Dialogues.prologue_0_03))
