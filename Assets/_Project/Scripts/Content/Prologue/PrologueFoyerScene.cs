@@ -180,7 +180,32 @@ namespace LostGoddess.Content
             var col = go.AddComponent<BoxCollider2D>();
             col.isTrigger = true;
             // 因为 sprite PPU=2(2px=1单位),BoxCollider2D 自动跟 sprite bounds → 已 OK
+
+            // 占位期挂个文字标签,一眼看清"谁在哪"(等美术出图后可整块移除)
+            AddDebugLabel(go, name + $"\n({pos.x:F1},{pos.y:F1})");
             return go;
+        }
+
+        /// <summary>在占位方块头顶加一个文字标签(TextMesh),显示名字 + 世界坐标。</summary>
+        static void AddDebugLabel(GameObject host, string text)
+        {
+            var lbl = new GameObject("_debug_label");
+            lbl.transform.SetParent(host.transform, false);
+            // host 有 localScale(方块的宽高),TextMesh 要抵消掉否则字被拉伸
+            var hs = host.transform.localScale;
+            lbl.transform.localScale = new Vector3(1f / Mathf.Max(0.01f, hs.x),
+                                                    1f / Mathf.Max(0.01f, hs.y), 1f);
+            // 放在方块正上方(local y = 0.5 是 sprite 顶,再往上一点)
+            lbl.transform.localPosition = new Vector3(0f, 0.55f, 0f);
+            var tm = lbl.AddComponent<TextMesh>();
+            tm.text = text;
+            tm.anchor = TextAnchor.LowerCenter;
+            tm.alignment = TextAlignment.Center;
+            tm.fontSize = 40;
+            tm.characterSize = 0.05f;
+            tm.color = new Color(1f, 0.95f, 0.6f);
+            var mr = lbl.GetComponent<MeshRenderer>();
+            mr.sortingOrder = 100;  // 盖在所有背景/占位物之上
         }
 
         static Transform MakePoint(Transform parent, Vector2 worldPos)

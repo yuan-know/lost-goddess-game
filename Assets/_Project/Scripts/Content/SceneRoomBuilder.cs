@@ -46,9 +46,11 @@ namespace LostGoddess.Content
             // 老人脚底跟着落到 -3.44,与画上地面对齐
             groundFromBottom = 0.13f,
             groundY = -3.44f,
+            // 视差层:远层慢滚(深度),中层中滚,**近层世界固定(与老人/占位物同一深度)**
+            //   前景那棵大树影是"世界里真实的一棵树",老人走过时被它挡住 → factor=0
             parallaxFar = 0.20f,
             parallaxMid = 0.55f,
-            parallaxNear = 1.00f,
+            parallaxNear = 0.00f,
         };
 
         public static readonly SceneDef TempleEntry = new SceneDef
@@ -62,7 +64,7 @@ namespace LostGoddess.Content
             groundY = -3.44f,
             parallaxFar = 0.20f,
             parallaxMid = 0.55f,
-            parallaxNear = 1.00f,
+            parallaxNear = 0.00f,
         };
 
         /// <summary>按定义构建场景:三层背景 + WalkableArea + 相机跟随。返回根节点。</summary>
