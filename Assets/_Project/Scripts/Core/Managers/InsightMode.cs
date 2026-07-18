@@ -19,6 +19,10 @@ namespace LostGoddess
 
         static InsightRuntime _runtime;
 
+        /// <summary>启动即初始化按键监听——不用等第一次 Toggle,否则 Q 键根本没人响应。</summary>
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
+        static void AutoInit() { EnsureRuntime(); }
+
         static void EnsureRuntime()
         {
             if (_runtime != null) return;
