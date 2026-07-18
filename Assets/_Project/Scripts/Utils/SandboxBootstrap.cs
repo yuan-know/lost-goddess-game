@@ -313,7 +313,7 @@ namespace LostGoddess
             rt.anchorMin = new Vector2(0, 1); rt.anchorMax = new Vector2(0, 1);
             rt.pivot = new Vector2(0, 1);
             rt.anchoredPosition = new Vector2(16, -16);
-            rt.sizeDelta = new Vector2(700, 200);
+            rt.sizeDelta = new Vector2(900, 300);
         }
 
         float _flashUntil;
@@ -324,6 +324,26 @@ namespace LostGoddess
         {
             if (_hud == null) return;
             string flash = (Time.time < _flashUntil) ? $"\n<{_flashMsg}>" : "";
+
+            // 诊断:老人状态 + 相机 + 可走线
+            var pc = PlayerController.Instance;
+            string playerDiag = "no Player";
+            if (pc != null)
+            {
+                var pos = pc.transform.position;
+                // 通过反射拿私有字段 _controllable / _moving,方便排查卡死
+                var t = pc.GetType();
+                var ctrlF = t.GetField("_controllable", System.Reflection.BindingFlags.NonPublic|System.Reflection.BindingFlags.Instance);
+                var moveF = t.GetField("_moving",       System.Reflection.BindingFlags.NonPublic|System.Reflection.BindingFlags.Instance);
+                bool ctrl = ctrlF != null && (bool)ctrlF.GetValue(pc);
+                bool mv   = moveF != null && (bool)moveF.GetValue(pc);
+                playerDiag = $"Player x={pos.x:F1} y={pos.y:F1}  ctrl={ctrl}  moving={mv}";
+            }
+            var cam = Camera.main;
+            string camDiag = (cam != null) ? $"Cam x={cam.transform.position.x:F1}" : "no Cam";
+            var wa = WalkableArea.Current;
+            string waDiag = (wa != null) ? $"Walk[{wa.minX:F1},{wa.maxX:F1}] gY={wa.GroundY:F1}" : "no WalkableArea";
+
             _hud.text =
                 $"[失落的女神 · 系统层验证沙盒]\n" +
                 $"点空地=角色走过去  点物件=走近触发\n" +
@@ -332,6 +352,8 @@ namespace LostGoddess
                 $"-=密室2  ==第四幕Chase   R=救急:强制解锁角色\n" +
                 $"[ / ] 微调地平线(±5%,按 Shift ±1%)   P 打印建议值\n" +
                 $"房间: {GameState.CurrentRoom}   时代: {GameState.CurrentEra}\n" +
+                $"{playerDiag}\n" +
+                $"{camDiag}   {waDiag}\n" +
                 $"持有提灯: {InventorySystem.Has(Items.item_lamp)}   门已开: {GameState.GetFlag(Flags.demo_door_unlocked)}" +
                 flash;
         }
