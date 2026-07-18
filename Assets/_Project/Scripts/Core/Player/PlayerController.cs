@@ -95,7 +95,6 @@ namespace LostGoddess
 
         public void SetControllable(bool on)
         {
-            Debug.Log($"[PC] SetControllable({on}) id={GetInstanceID()} pos={transform.position}");
             _controllable = on;
             if (!on) SetMoving(false);
         }
