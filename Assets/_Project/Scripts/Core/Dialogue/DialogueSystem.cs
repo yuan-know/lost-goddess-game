@@ -118,32 +118,49 @@ namespace LostGoddess
             scaler.referenceResolution = new Vector2(1920, 1080);
             go.AddComponent<GraphicRaycaster>();
 
-            // 底部半透明条
+            // 底部半透明条:高度 160(容 3 行 34px 字)、alpha 0.45(不切画面感)
+            // 上边缘用一个 8px 高的更浅条做柔和过渡,避免"硬切"感
             var barGo = new GameObject("Bar");
             barGo.transform.SetParent(go.transform, false);
             var barImg = barGo.AddComponent<Image>();
-            barImg.color = new Color(0, 0, 0, 0.75f);
+            barImg.color = new Color(0, 0, 0, 0.45f);
             var brt = barImg.rectTransform;
             brt.anchorMin = new Vector2(0, 0);
             brt.anchorMax = new Vector2(1, 0);
             brt.pivot = new Vector2(0.5f, 0);
-            brt.sizeDelta = new Vector2(0, 220);
+            brt.sizeDelta = new Vector2(0, 160);
             brt.anchoredPosition = Vector2.zero;
+
+            // 柔和过渡条:比 Bar 稍高,alpha 更淡
+            var fadeGo = new GameObject("BarFade");
+            fadeGo.transform.SetParent(go.transform, false);
+            var fadeImg = fadeGo.AddComponent<Image>();
+            fadeImg.color = new Color(0, 0, 0, 0.22f);
+            var frt = fadeImg.rectTransform;
+            frt.anchorMin = new Vector2(0, 0);
+            frt.anchorMax = new Vector2(1, 0);
+            frt.pivot = new Vector2(0.5f, 0);
+            frt.sizeDelta = new Vector2(0, 220);
+            frt.anchoredPosition = Vector2.zero;
 
             // 文本
             var txtGo = new GameObject("Label");
             txtGo.transform.SetParent(barGo.transform, false);
             var label = txtGo.AddComponent<Text>();
             label.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
-            label.fontSize = 34;
-            label.color = Color.white;
-            label.alignment = TextAnchor.MiddleLeft;
+            label.fontSize = 30;
+            label.color = new Color(1f, 0.96f, 0.9f);   // 微暖白
+            label.alignment = TextAnchor.MiddleCenter;   // 剧本感:居中
             label.horizontalOverflow = HorizontalWrapMode.Wrap;
             label.verticalOverflow = VerticalWrapMode.Overflow;
+            // 加轻微描边,让字幕在浅色画面上也读得清
+            var outline = txtGo.AddComponent<UnityEngine.UI.Outline>();
+            outline.effectColor = new Color(0, 0, 0, 0.9f);
+            outline.effectDistance = new Vector2(1.5f, -1.5f);
             var lrt = label.rectTransform;
             lrt.anchorMin = Vector2.zero; lrt.anchorMax = Vector2.one;
-            lrt.offsetMin = new Vector2(80, 30);
-            lrt.offsetMax = new Vector2(-80, -30);
+            lrt.offsetMin = new Vector2(120, 20);
+            lrt.offsetMax = new Vector2(-120, -20);
 
             var ui = go.AddComponent<DialogueUI>();
             ui._label = label;
@@ -163,23 +180,38 @@ namespace LostGoddess
 
         IEnumerator Run()
         {
-            _cg.alpha = 1f;
+            // 淡入 0.25s
             _cg.blocksRaycasts = true;
+            yield return FadeAlpha(0f, 1f, 0.25f);
 
-            // 等待点击或超时(按文本长度)
+            // 最短保底显示时长
             float minShow = 0.4f;
             float t = 0f;
             while (t < minShow) { t += Time.deltaTime; yield return null; }
 
+            // 等玩家点击继续
             while (!Input.GetMouseButtonDown(0)) yield return null;
 
-            _cg.alpha = 0f;
+            // 淡出 0.2s
+            yield return FadeAlpha(1f, 0f, 0.2f);
             _cg.blocksRaycasts = false;
 
             var cb = _onFinish;
             _onFinish = null;
             _routine = null;
             cb?.Invoke();
+        }
+
+        IEnumerator FadeAlpha(float from, float to, float dur)
+        {
+            float t = 0f;
+            while (t < dur)
+            {
+                t += Time.deltaTime;
+                _cg.alpha = Mathf.Lerp(from, to, Mathf.Clamp01(t / dur));
+                yield return null;
+            }
+            _cg.alpha = to;
         }
     }
 }
