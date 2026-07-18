@@ -139,6 +139,9 @@ namespace LostGoddess
         void SetMoving(bool on)
         {
             _moving = on;
+            // 延迟算 hash:Awake 时 animator 还没被 Bootstrap 赋值,那时 hash 是 0。这里补上。
+            if (_walkHash == 0 && !string.IsNullOrEmpty(walkParam))
+                _walkHash = Animator.StringToHash(walkParam);
             if (animator != null && _walkHash != 0)
                 animator.SetBool(_walkHash, on);
         }
