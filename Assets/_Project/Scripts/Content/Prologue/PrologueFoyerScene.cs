@@ -145,7 +145,9 @@ namespace LostGoddess.Content
             go.transform.SetParent(parent, false);
             go.transform.position = pos;
             var sr = go.AddComponent<SpriteRenderer>();
-            sr.sprite = Resources.Load<Sprite>("Closeups/mural_prologue");
+            // 优先用美术新版壁画特写(3360×1184);缺图时退回旧版
+            var newSp = Resources.Load<Sprite>("Closeups/mural_prologue_v2");
+            sr.sprite = newSp != null ? newSp : Resources.Load<Sprite>("Closeups/mural_prologue");
             sr.sortingOrder = 40;   // 在 bg_mid(-20) 之前、bg_near(60) 之后
             sr.color = new Color(1f, 1f, 1f, 0f);  // 起始透明
             // 特写图原本是"全屏立绘"级别的大尺寸(用作 close-up 面板),
