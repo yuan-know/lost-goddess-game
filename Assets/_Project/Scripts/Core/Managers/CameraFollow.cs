@@ -26,7 +26,8 @@ namespace LostGoddess
 
         void LateUpdate()
         {
-            if (target == null)
+            // target 无效(未设 / 已 Destroy)时重新 Find。切场景后旧 Player 被销毁,新 Player 名字仍是 "Player"。
+            if (target == null || !target)
             {
                 var g = GameObject.FindWithTag("Player") ?? GameObject.Find("Player");
                 if (g == null) return;

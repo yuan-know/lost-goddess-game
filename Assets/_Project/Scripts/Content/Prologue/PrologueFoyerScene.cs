@@ -24,11 +24,13 @@ namespace LostGoddess.Content
 
         public static void Build()
         {
+            Debug.Log($"[PrologueFoyerScene] Build 开始 CurrentEra={GameState.CurrentEra}");
             var root = SceneRoomBuilder.Build(SceneRoomBuilder.TempleEntry);
             float groundY = SceneRoomBuilder.TempleEntry.groundY;
 
             // 老人沿用当前 Era(从第 0 幕过来时是 Old)
-            PlayerBuilder.Build(GameState.CurrentEra, groundY, SpawnX);
+            var player = PlayerBuilder.Build(GameState.CurrentEra, groundY, SpawnX);
+            Debug.Log($"[PrologueFoyerScene] Player 建好 name={player?.name} pos={player?.transform.position} PC.Instance={PlayerController.Instance}");
 
             // ── 交互物 4 件套 ────────────────────────────────────────────
             //  x 坐标是"世界坐标",相机 clamp 到 [-17+ortho, 17-ortho] 范围

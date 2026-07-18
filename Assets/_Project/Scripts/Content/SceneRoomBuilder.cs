@@ -108,7 +108,9 @@ namespace LostGoddess.Content
                 follow.maxX =  halfW - orthoHalfW;
                 follow.fixedY = 0f;
                 follow.smoothTime = 0.15f;
-                // target 会自动找 "Player"
+                follow.target = null;   // 强制下一帧重新 Find "Player"(切场景后旧 target 已失效)
+                // 相机瞬移到新场景的可动区中点(避免上一场景的 X 位置让 SmoothDamp 慢慢滑,导致 Player 短暂在视野外)
+                cam.transform.position = new Vector3(0f, follow.fixedY, cam.transform.position.z);
             }
 
             return root;
