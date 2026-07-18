@@ -225,7 +225,9 @@ namespace LostGoddess.Content
               .Add(new SayStep(Dialogues.prologue_1_insight_hint));
             cs.OnFinished += () =>
             {
-                if (pc != null) pc.SetControllable(true);
+                // 用当前时刻 Instance,避免闭包捕获旧引用
+                var p = PlayerController.Instance;
+                if (p != null) p.SetControllable(true);
             };
             cs.Play();
         }
