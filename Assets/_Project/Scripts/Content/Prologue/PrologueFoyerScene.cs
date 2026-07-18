@@ -208,31 +208,35 @@ namespace LostGoddess.Content
     {
         void Start()
         {
-            // 首次进入:播 2 句 os + 提示按 Q
+            // 首次进入:播 3 句 os(边走边看,不锁老人)
             if (GameState.GetFlag(Flags.Prologue_EnteredFoyer))
             {
-                // 复入:什么都不播,把控制权还给玩家
                 if (PlayerController.Instance != null)
                     PlayerController.Instance.SetControllable(true);
                 return;
             }
             GameState.SetFlag(Flags.Prologue_EnteredFoyer, true);
 
-            var pc = PlayerController.Instance;
-            if (pc != null) pc.SetControllable(false);
+            // 【重要】不用 Cutscene(Cutscene.Run 会 SetControllable(false) 锁老人)。
+            // 3 句氛围对白用协程按序播,老人始终可控,玩家可以边听边走。
+            if (PlayerController.Instance != null)
+                PlayerController.Instance.SetControllable(true);
+            StartCoroutine(PlayIntroDialogue());
+        }
 
-            var cs = gameObject.AddComponent<Cutscene>();
-            cs.Add(new WaitStep(0.5f))
-              .Add(new SayStep(Dialogues.prologue_1_01))
-              .Add(new SayStep(Dialogues.prologue_1_02))
-              .Add(new SayStep(Dialogues.prologue_1_insight_hint));
-            cs.OnFinished += () =>
-            {
-                // 用当前时刻 Instance,避免闭包捕获旧引用
-                var p = PlayerController.Instance;
-                if (p != null) p.SetControllable(true);
-            };
-            cs.Play();
+        System.Collections.IEnumerator PlayIntroDialogue()
+        {
+            yield return new WaitForSeconds(0.5f);
+            yield return ShowAndWait(Dialogues.prologue_1_01);
+            yield return ShowAndWait(Dialogues.prologue_1_02);
+            yield return ShowAndWait(Dialogues.prologue_1_insight_hint);
+        }
+
+        System.Collections.IEnumerator ShowAndWait(string dialogueId)
+        {
+            bool done = false;
+            DialogueSystem.Show(dialogueId, () => done = true);
+            while (!done) yield return null;
         }
     }
 }

@@ -67,6 +67,15 @@ namespace LostGoddess
             if (Input.GetKeyDown(KeyCode.Minus)) SwitchRoom(Rooms.Prologue_Chamber2);
             if (Input.GetKeyDown(KeyCode.Equals)) SwitchRoom(Rooms.Prologue_Chase);
 
+            // 救急键 R:强制解锁角色 + 停掉所有 Cutscene(卡死救援)
+            if (Input.GetKeyDown(KeyCode.R))
+            {
+                if (PlayerController.Instance != null)
+                    PlayerController.Instance.SetControllable(true);
+                foreach (var cs in FindObjectsOfType<Cutscene>()) cs.Stop();
+                Flash("已强制解锁角色 (R)");
+            }
+
             // 当前场景地平线微调(验证用):[ 抬背景/相当于降低地面 5% ] 降背景/抬高地面
             // 按住 Shift 是细调 1%,不按是粗调 5%
             float step = Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift) ? 0.01f : 0.05f;
@@ -320,7 +329,7 @@ namespace LostGoddess
                 $"点空地=角色走过去  点物件=走近触发\n" +
                 $"F5 存档 / F9 读档   1/2/3 切换青年/中年/老年\n" +
                 $"4=占位沙盒  5=黑暗森林  6=神庙入口  7=序幕荒山  8=序幕门厅  9=密室3  0=二楼回廊\n" +
-                $"-=密室2  ==第四幕Chase\n" +
+                $"-=密室2  ==第四幕Chase   R=救急:强制解锁角色\n" +
                 $"[ / ] 微调地平线(±5%,按 Shift ±1%)   P 打印建议值\n" +
                 $"房间: {GameState.CurrentRoom}   时代: {GameState.CurrentEra}\n" +
                 $"持有提灯: {InventorySystem.Has(Items.item_lamp)}   门已开: {GameState.GetFlag(Flags.demo_door_unlocked)}" +
