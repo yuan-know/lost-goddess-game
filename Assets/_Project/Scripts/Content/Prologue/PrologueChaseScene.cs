@@ -30,9 +30,11 @@ namespace LostGoddess.Content
 
         public static void Build()
         {
-            var room = SceneRoomBuilder.Build(SceneRoomBuilder.TempleEntry);
+            // 场景:策划稿 §2.7 说"复用 Foyer 的门 + 黑雾 overlay"—— Foyer 切了 TempleFoyer
+            //   之后,Chase 也跟着切,视觉上就是"大门开的一刻黑雾从门口涌进前厅"。
+            var room = SceneRoomBuilder.Build(SceneRoomBuilder.TempleFoyer);
             room.name = "Room_" + Rooms.Prologue_Chase;
-            float groundY = SceneRoomBuilder.TempleEntry.groundY;
+            float groundY = SceneRoomBuilder.TempleFoyer.groundY;
 
             PlayerBuilder.Build(GameState.CurrentEra, groundY, SpawnX);
 
@@ -139,13 +141,18 @@ namespace LostGoddess.Content
             // 青年向右狂奔
             _cs.Add(new WalkPlayerToStep(PrologueChaseScene.RunEndX));
 
-            // 黑幕(2s) + 白字"死了"
+            // 黑幕(2s) + 白字"死了" —— 走 SayTextStep 白字覆黑屏
             _cs.Add(new FadeStep(Color.black, 1.5f, FadeType.In))
                .Add(new SayStep(Dialogues.prologue_4_died))
                .Add(new SayStep(Dialogues.prologue_4_awakening))
                .Add(new SetFlagStep(Flags.Prologue_DeathCutscene, true))
                .Add(new SetFlagStep(Flags.Achievement_ReturnToPast, true))
-               // 序幕结束 → 主线大殿(占位场景,SceneLoader 找不到会警告,可先不建)
+               // 关键:切场景前把 FadeOverlayColored 黑幕淡回透明,否则新场景永远黑屏
+               //   (FadeOverlayColored 是 DontDestroyOnLoad 全局单例,不主动清就一直挡屏)
+               //   淡回时间 0.6s,与后续 GoToSceneStep 的 FadeOverlay 黑幕淡入(1.0s)有 0.4s 重叠,
+               //   保证视觉上没有"突然亮一下再切场景"的闪烁
+               .Add(new FadeStep(Color.black, 0.6f, FadeType.Out))
+               // 序幕结束 → 主线大殿(占位场景 Chapter1_Hall,SandboxBootstrap 里有 Build 兜底)
                .Add(new GoToSceneStep(Rooms.Chapter1_Hall, 1.0f));
 
             _cs.Play();

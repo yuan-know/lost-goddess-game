@@ -25,8 +25,15 @@ namespace LostGoddess.Content
 
         public static void Build()
         {
-            var root = SceneRoomBuilder.Build(SceneRoomBuilder.TempleEntry);
-            float groundY = SceneRoomBuilder.TempleEntry.groundY;
+            // 场景:美术已给「神庙前厅」专用图,SceneRoomBuilder 会加载
+            //   Resources/Scenes/TempleFoyer/bg_unlit_full.png (关灯全景)
+            //  ⚠ 开灯版(bg_lit_full / bg_lit_bg)和展台单件(prop_podium_lit/unlit)
+            //   等策划确认亮灯触发条件后再接线(见记忆 2026-07-18 待策划答复清单)。
+            //  ⚠ 门厅内的交互物坐标(展台/大门/楼梯/壁画/密室3 Portal)是按旧 TempleEntry
+            //   背景算的 —— 切图后需按 TempleFoyer 视觉锚点重摆(等策划答复壁画墙面位置)。
+            var root = SceneRoomBuilder.Build(SceneRoomBuilder.TempleFoyer);
+            root.name = "Room_" + Rooms.Prologue_Foyer;
+            float groundY = SceneRoomBuilder.TempleFoyer.groundY;
 
             // 老人沿用当前 Era(从第 0 幕过来时是 Old)
             var player = PlayerBuilder.Build(GameState.CurrentEra, groundY, SpawnX);

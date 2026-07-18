@@ -29,6 +29,13 @@ namespace LostGoddess.Content
         public float parallaxNear;
         public float leftPadding = 0.5f;  // 老人可走线两端各留一点边(不让走出背景)
         public float rightPadding = 0.5f;
+
+        // 覆盖三层的文件名(为空则默认 bg_far/bg_mid/bg_near)。
+        //   用途:美术给的是"整张全景 bg_unlit_full.png"而不是三层分层图时,
+        //   把 bgFarSprite = "bg_unlit_full" 就能一张图当远景铺满,其他两层留空(缺图不 warn)。
+        public string bgFarSprite;
+        public string bgMidSprite;
+        public string bgNearSprite;
     }
 
     public static class SceneRoomBuilder
@@ -74,9 +81,7 @@ namespace LostGoddess.Content
         //  美术:Scenes/TempleChamber1F/{bg_far, prop_pottery, bg_full}
         //   · bg_far.png(3400×1200)= 洗礼池全景背景
         //   · prop_pottery.png(3400×1200)= 陶罐层(全画布位置,与背景对齐)
-        //  当前只有 2 层,SceneRoomBuilder 找不到 bg_mid/bg_near 会 warn(可忽略);
-        //  把 prop_pottery 借用 "bg_near" 通道让它落在前景层(sorting 60,alpha=0.55)。
-        //  D5 待办:等美术补 bg_mid/bg_near 或用 SceneRoomBuilder 改造成"任意层名"。
+        //  共 2 层美术:bg_far 作远景 / prop_pottery 作前景 near / mid 空跳过
         public static readonly SceneDef TempleChamber1F = new SceneDef
         {
             roomName = "TempleChamber1F",
@@ -88,6 +93,9 @@ namespace LostGoddess.Content
             parallaxFar = 0.00f,
             parallaxMid = 0.00f,
             parallaxNear = 0.00f,
+            bgFarSprite = "bg_far",
+            bgMidSprite = "",                // 无中层
+            bgNearSprite = "prop_pottery",   // 陶罐当近景层
         };
 
         // 【前厅二楼坍塌的回廊】—— UpperHall 铁笼齿轮箱场景专用美术
@@ -106,6 +114,53 @@ namespace LostGoddess.Content
             parallaxFar = 0.00f,
             parallaxMid = 0.00f,
             parallaxNear = 0.00f,
+            bgFarSprite = "bg_far",
+            bgMidSprite = "",                // 无中层
+            bgNearSprite = "bg_near",
+        };
+
+        // 【神庙前厅内部】—— 序幕第一幕 Prologue_Foyer 真正的门厅
+        //  美术:Scenes/TempleFoyer/
+        //   · bg_unlit_full.png(3400×1200)= 关灯全景(阴森初进 = 默认)
+        //   · bg_lit_full.png / bg_lit_bg.png = 开灯版(待策划定触发条件)
+        //   · prop_podium_lit.png / prop_podium_unlit.png = 展台单件(全画布定位)
+        //  第一阶段:只用关灯全景当远景,展台/开灯逻辑等策划答复后再加(见记忆里"明天问策划"清单)。
+        public static readonly SceneDef TempleFoyer = new SceneDef
+        {
+            roomName = "TempleFoyer",
+            bgPixelWidth = 3400f,
+            bgPixelHeight = 1200f,
+            bgPPU = 100f,
+            groundFromBottom = 0.13f,
+            groundY = -3.44f,
+            parallaxFar = 0.00f,
+            parallaxMid = 0.00f,
+            parallaxNear = 0.00f,
+            bgFarSprite = "bg_unlit_full",   // 关灯版全景
+            bgMidSprite = "",
+            bgNearSprite = "",               // 暂无前景,前景元素等策划确认(展台位置/亮灯逻辑)
+        };
+
+        // 【密室 2 · 棺材小游戏】—— Prologue_Chamber2
+        //  美术:Scenes/Chamber2/{bg_far, bg_near, bg_full}
+        //   · bg_far.png = 6656×2304 巨图,但仍按 3400×1200 舞台居中显示(超出部分被相机 clamp 挡住)
+        //   · bg_near.png(3400×1200)= 前景
+        //  策划稿:青年推入密室 2 → 棺材小游戏(D7 未实现)→ 解开切中年。
+        //  这里只把图接进来,交互物(棺材 puzzle)等 D7 补。
+        public static readonly SceneDef PrologueChamber2 = new SceneDef
+        {
+            roomName = "Chamber2",
+            bgPixelWidth = 3400f,           // 舞台按 3400 算(bg_far 巨图溢出,靠相机 clamp 裁掉)
+            bgPixelHeight = 1200f,
+            bgPPU = 100f,
+            groundFromBottom = 0.13f,
+            groundY = -3.44f,
+            parallaxFar = 0.00f,
+            parallaxMid = 0.00f,
+            parallaxNear = 0.00f,
+            bgFarSprite = "bg_far",
+            bgMidSprite = "",
+            bgNearSprite = "bg_near",
         };
 
         /// <summary>按定义构建场景:三层背景 + WalkableArea + 相机跟随。返回根节点。</summary>
@@ -128,9 +183,13 @@ namespace LostGoddess.Content
             //   但把 alpha 降到 0.55 → 老人被前景剪影"薄薄挡住"而不是完全吞掉,
             //   同时前景剪影的形体依然清晰(黑影层次感)。等美术出小型前景元素
             //   (柱子/草丛)再单独用 alpha=1 摆真前景遮挡。
-            BuildLayer(root.transform, def, "bg_far",  imageBottomY, def.parallaxFar,  sortingOrder: -30, alpha: 1.0f);
-            BuildLayer(root.transform, def, "bg_mid",  imageBottomY, def.parallaxMid,  sortingOrder: -20, alpha: 1.0f);
-            BuildLayer(root.transform, def, "bg_near", imageBottomY, def.parallaxNear, sortingOrder:  60, alpha: 0.55f);
+            //   若 def 里指定了 bgXxxSprite,用指定文件名代替默认 bg_far/mid/near。
+            string farName  = string.IsNullOrEmpty(def.bgFarSprite)  ? "bg_far"  : def.bgFarSprite;
+            string midName  = string.IsNullOrEmpty(def.bgMidSprite)  ? "bg_mid"  : def.bgMidSprite;
+            string nearName = string.IsNullOrEmpty(def.bgNearSprite) ? "bg_near" : def.bgNearSprite;
+            BuildLayer(root.transform, def, farName,  imageBottomY, def.parallaxFar,  sortingOrder: -30, alpha: 1.0f);
+            BuildLayer(root.transform, def, midName,  imageBottomY, def.parallaxMid,  sortingOrder: -20, alpha: 1.0f);
+            BuildLayer(root.transform, def, nearName, imageBottomY, def.parallaxNear, sortingOrder:  60, alpha: 0.55f);
 
             // 可走区:X 边界按背景宽度(相机跟随时,人物走到边缘停下,不出背景)
             // 注意:老人不能走到贴边,预留 padding。
@@ -164,6 +223,8 @@ namespace LostGoddess.Content
 
         static void BuildLayer(Transform parent, SceneDef def, string spriteName, float bottomY, float factor, int sortingOrder, float alpha = 1f)
         {
+            // 空名字 = 显式跳过这一层(不 warn),用于只有 1~2 层美术的场景
+            if (string.IsNullOrEmpty(spriteName)) return;
             var sp = Resources.Load<Sprite>($"Scenes/{def.roomName}/{spriteName}");
             if (sp == null)
             {

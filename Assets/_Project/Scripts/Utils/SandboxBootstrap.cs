@@ -191,6 +191,11 @@ namespace LostGoddess
                 LostGoddess.Content.PrologueChaseScene.Build();
                 return;
             }
+            if (roomName == Rooms.Chapter1_Hall)
+            {
+                LostGoddess.Content.Chapter1HallScene.Build();
+                return;
+            }
 
             // 美术已交付的真实场景:调 SceneRoomBuilder 建三层视差背景 + WalkableArea + 相机跟随;
             // 交互物暂缺(等策划)——只把老人放进去就行,看视差滚动 + 老人走场景效果。
@@ -263,9 +268,14 @@ namespace LostGoddess
             if (PlayerController.Instance != null)
                 PlayerController.Instance.SetControllable(true);
             // 强制修正 WalkableArea.Current:如果场景里有多个 WalkableArea(旧的没清干净),
-            // 取新场景根节点下的那一个
+            // 取新场景根节点下的那一个。SceneRoomBuilder 用 SceneDef.roomName 命名根节点,
+            // 而 Prologue_* 场景里各自又 rename 成了 Room_Prologue_XXX,所以两套名字都要试。
             var newRoot = GameObject.Find("Room_" + roomName)
-                       ?? GameObject.Find("Room_TempleEntry")   // Foyer 的场景根其实叫 Room_TempleEntry
+                       ?? GameObject.Find("Room_TempleFoyer")
+                       ?? GameObject.Find("Room_TempleChamber1F")
+                       ?? GameObject.Find("Room_UpperHall")
+                       ?? GameObject.Find("Room_Chamber2")
+                       ?? GameObject.Find("Room_TempleEntry")
                        ?? GameObject.Find("Room_DarkForest");
             if (newRoot != null)
             {
@@ -294,6 +304,9 @@ namespace LostGoddess
                 "Room_" + Rooms.Prologue_Woods, "Room_" + Rooms.Prologue_Foyer,
                 "Room_" + Rooms.Prologue_Chamber3, "Room_" + Rooms.Prologue_UpperHall,
                 "Room_" + Rooms.Prologue_Chamber2, "Room_" + Rooms.Prologue_Chase,
+                "Room_" + Rooms.Chapter1_Hall,
+                // SceneRoomBuilder 用 SceneDef.roomName 命名根节点,与 Prologue_* 逻辑房间名不同:
+                "Room_TempleFoyer", "Room_TempleChamber1F", "Room_UpperHall", "Room_Chamber2",
             })
             {
                 var g = GameObject.Find(n);

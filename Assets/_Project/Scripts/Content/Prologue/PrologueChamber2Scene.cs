@@ -8,7 +8,8 @@
 //    · 棺材:点 3 次解开(每次进度 +1/3),第 3 次触发 Cutscene 切中年
 //    · 小游戏 D8+ 打磨真实解谜(3 层圆盘/滑块)
 //
-//  背景:先复用 TempleEntry 视差占位。
+//  背景:美术已给「密室 2」专用图 Scenes/Chamber2/{bg_far, bg_near, bg_full}。
+//   · bg_far 是 6656×2304 巨图,当前按 3400×1200 舞台居中显示(超出被相机 clamp 挡)。
 // ============================================================================
 
 using UnityEngine;
@@ -21,9 +22,9 @@ namespace LostGoddess.Content
 
         public static void Build()
         {
-            var room = SceneRoomBuilder.Build(SceneRoomBuilder.TempleEntry);
+            var room = SceneRoomBuilder.Build(SceneRoomBuilder.PrologueChamber2);
             room.name = "Room_" + Rooms.Prologue_Chamber2;
-            float groundY = SceneRoomBuilder.TempleEntry.groundY;
+            float groundY = SceneRoomBuilder.PrologueChamber2.groundY;
 
             // 从青年过来 —— 只按当前 Era 建 Player
             PlayerBuilder.Build(GameState.CurrentEra, groundY, SpawnX);
