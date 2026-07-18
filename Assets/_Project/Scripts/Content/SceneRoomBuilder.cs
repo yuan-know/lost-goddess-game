@@ -46,10 +46,12 @@ namespace LostGoddess.Content
             // 老人脚底跟着落到 -3.44,与画上地面对齐
             groundFromBottom = 0.13f,
             groundY = -3.44f,
-            // 视差层:远层慢滚(深度),中层中滚,**近层世界固定(与老人/占位物同一深度)**
-            //   前景那棵大树影是"世界里真实的一棵树",老人走过时被它挡住 → factor=0
-            parallaxFar = 0.20f,
-            parallaxMid = 0.55f,
+            // 【占位阶段:三层视差全部关掉】
+            //   原因:美术还没按"这一层画什么、那一层画什么"严格分工,占位期把三层
+            //   全画满会导致占位物(世界固定)和 mid/far 层视差滑动不同步,视觉错位。
+            //   等真美术给出各层分工再放开(远层 0.20 / 中层 0.55 / 近层 0)。
+            parallaxFar = 0.00f,
+            parallaxMid = 0.00f,
             parallaxNear = 0.00f,
         };
 
@@ -62,8 +64,9 @@ namespace LostGoddess.Content
             // 同上:图底贴视口底 Y=-5,老人脚底 -3.44
             groundFromBottom = 0.13f,
             groundY = -3.44f,
-            parallaxFar = 0.20f,
-            parallaxMid = 0.55f,
+            // 占位阶段视差全关(同 DarkForest 注释)
+            parallaxFar = 0.00f,
+            parallaxMid = 0.00f,
             parallaxNear = 0.00f,
         };
 
