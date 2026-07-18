@@ -139,9 +139,12 @@ namespace LostGoddess.Content
             sr.sprite = Resources.Load<Sprite>("Closeups/mural_prologue");
             sr.sortingOrder = 40;   // 在 bg_mid(-20) 之前、bg_near(60) 之后
             sr.color = new Color(1f, 1f, 1f, 0f);  // 起始透明
-            go.transform.localScale = Vector3.one * 0.4f;  // 特写图很大,缩到 40%
-            // 老年 Q 键洞察时淡入(默认 alpha=1)
-            go.AddComponent<InsightPhantom>();
+            // 特写图原本是"全屏立绘"级别的大尺寸(用作 close-up 面板),
+            // 当"墙上壁画"用时必须大幅缩小,否则一淡入就吞掉半个屏幕。
+            go.transform.localScale = Vector3.one * 0.12f;
+            // 老年 Q 键洞察时淡入到 ~0.6(幽幽的显影感,而不是实体贴画)
+            var ph = go.AddComponent<InsightPhantom>();
+            ph.visibleAlpha = 0.6f;
             return go;
         }
 
