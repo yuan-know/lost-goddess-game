@@ -21,7 +21,10 @@ namespace LostGoddess.Content
     public static class PrologueGateScene
     {
         public const float SpawnX = -8f;     // 老人在左端可见处出生
-        public const float ArchX  = 8f;      // 石拱门位置(TempleGate 图中神庙主体的中心)
+        // 石拱门开口位置 —— 目测 TempleGate 图 3400×1200(世界宽 34,x∈[-17,+17]),
+        //   石拱门开口画面上偏右,大约在 x=+11.5(用户截图校准过一次)。
+        //   注:相机 clamp 允许 x 到 +17 右边界,+11.5 完全可视。
+        public const float ArchX  = 11.5f;
 
         public static void Build()
         {
@@ -42,27 +45,26 @@ namespace LostGoddess.Content
 
         static void BuildArchPortal(Transform parent, Vector2 pos, float groundY)
         {
-            // pos.x = 石拱门画面中心 x,pos.y 不重要(下面按 y 范围重算中心)
-            // 判定块 y 范围要盖住"从地面到石拱门顶":TempleGate 图 3400×1200,
-            //   图底 y=-5,图顶 y=+7,石拱门画面高度 ~4~5 世界单位(下沿地面 ~+7 图占比)。
-            //   我们让判定块 y ∈ [groundY, groundY+7],覆盖脚底到拱门最高处。
-            const float archTopOffset = 7f;      // 拱门顶大约在地面上 7 单位
-            const float archBottomOffset = 0f;   // 拱门底就在地面
-            float centerY = groundY + (archTopOffset + archBottomOffset) * 0.5f;
-            float height  = archTopOffset - archBottomOffset;
+            // pos.x = 石拱门开口画面中心 x。判定块只覆盖**拱门开口区**(不覆盖两侧石墙),
+            //   避免玩家点石墙误触发进门。开口范围目测:
+            //     宽度 ~2.5 世界单位(拱门内侧净宽)
+            //     高度 ~5 世界单位(地面到拱顶圆弧最高点)
+            const float archOpeningWidth  = 2.5f;
+            const float archOpeningHeight = 5f;
+            float centerY = groundY + archOpeningHeight * 0.5f;
 
             var go = new GameObject("Portal_ToFoyer_石拱门");
             go.transform.SetParent(parent, false);
             go.transform.position = new Vector3(pos.x, centerY, 0f);
 
-            // 不可见判定块(4×7 世界单位,足够任何"点石拱门"的位置命中)
+            // 不可见判定块(2.5×5 世界单位,只覆盖拱门开口)
             //  · sortingOrder=70 > bg_near(60),点近景剪影下的拱门也响应
-            //  · debug 期给 15% 淡黄 tint 便于用户看到判定块的边界(以后改回 α=0)
+            //  · debug 期给 15% 淡黄 tint 便于看到判定块的边界(以后改回 α=0)
             var sr = go.AddComponent<SpriteRenderer>();
             sr.sprite = SolidSprite();
-            sr.color = new Color(1f, 0.9f, 0.4f, 0.10f);  // 极淡黄(15%),验证期可视化,后期改 α=0
+            sr.color = new Color(1f, 0.9f, 0.4f, 0.10f);  // 极淡黄,验证期可视化
             sr.sortingOrder = 70;
-            go.transform.localScale = new Vector3(4f, height, 1f);
+            go.transform.localScale = new Vector3(archOpeningWidth, archOpeningHeight, 1f);
             var col = go.AddComponent<BoxCollider2D>();
             col.isTrigger = true;
 
@@ -78,7 +80,7 @@ namespace LostGoddess.Content
             p.position = new Vector3(pos.x, groundY, 0f);
             portal.interactPoint = p;
 
-            Debug.Log($"[Gate] Portal_ToFoyer built at x={pos.x} y∈[{groundY:F2},{groundY+archTopOffset:F2}] size=4×{height} → targetRoom={Rooms.Prologue_Foyer}");
+            Debug.Log($"[Gate] Portal_ToFoyer at x={pos.x} y∈[{groundY:F2},{groundY+archOpeningHeight:F2}] size={archOpeningWidth}×{archOpeningHeight} → {Rooms.Prologue_Foyer}");
         }
 
         static Sprite _solid;
