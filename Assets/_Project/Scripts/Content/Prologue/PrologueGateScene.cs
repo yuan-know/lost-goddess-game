@@ -7,22 +7,21 @@
 //
 //  设计:
 //    · 背景:TempleGate 三层(bg_far 远景山 / bg_temple 神庙主体 / bg_near 近景遮挡)
-//    · 老年从左端 SpawnX=-12 出生,自动 WalkPlayerTo 到石拱门下 x=+8
-//    · 无任何交互物(不是解谜场景,只是"走进庙门"这一 beat)
-//    · 走到位置后,一句 SayText 提示,再淡出跳到 Prologue_Foyer 内景
+//    · 老年从左端 SpawnX=-8 出生,玩家**自控**走向右侧石拱门
+//    · 石拱门位置放一个**不可见 ScenePortal**(老人走近→点击→跳 Prologue_Foyer)
+//    · 无其他交互物(不是解谜场景,只是"走进庙门"这一 beat)
 //
 //  ⚠ 千万别加展台/石门/楼梯这些第一幕内景的道具 —— 那些应该出现在下一个场景 TempleFoyer 里
 // ============================================================================
 
-using System.Collections;
 using UnityEngine;
 
 namespace LostGoddess.Content
 {
     public static class PrologueGateScene
     {
-        public const float SpawnX = -12f;    // 左端进入
-        public const float ArchX  = 8f;      // 石拱门位置(TempleGate 图中神庙主体的位置)
+        public const float SpawnX = -8f;     // 老人在左端可见处出生
+        public const float ArchX  = 8f;      // 石拱门位置(TempleGate 图中神庙主体的中心)
 
         public static void Build()
         {
@@ -30,37 +29,79 @@ namespace LostGoddess.Content
             root.name = "Room_" + Rooms.Prologue_Gate;
             float groundY = SceneRoomBuilder.TempleGate.groundY;
 
-            // 老人沿用当前 Era(从第 0 幕过来时是 Old)
+            // 老人沿用当前 Era(从第 0 幕过来时是 Old),玩家自控走向石拱门
             PlayerBuilder.Build(GameState.CurrentEra, groundY, SpawnX);
 
-            // 挂过场 director
+            // 石拱门:不可见 ScenePortal(BoxCollider2D isTrigger,SpriteRenderer 透明)
+            //  ── 老人走近 interactPoint → OnClick → 跳到内景 Foyer
+            BuildArchPortal(root.transform, new Vector2(ArchX, groundY + 1.5f), groundY);
+
+            // 挂 Director:一句一次性引导独白
             root.AddComponent<PrologueGateDirector>();
+        }
+
+        static void BuildArchPortal(Transform parent, Vector2 pos, float groundY)
+        {
+            var go = new GameObject("Portal_ToFoyer_石拱门");
+            go.transform.SetParent(parent, false);
+            go.transform.position = pos;
+
+            // 不可见判定块(≈石拱门中心 3×3.5 世界单位,足够玩家点到)
+            var sr = go.AddComponent<SpriteRenderer>();
+            sr.sprite = SolidSprite();
+            sr.color = new Color(0f, 0f, 0f, 0f);  // 完全透明
+            sr.sortingOrder = 55;                    // 在近景 60 之下,可点
+            go.transform.localScale = new Vector3(3f, 3.5f, 1f);
+            var col = go.AddComponent<BoxCollider2D>();
+            col.isTrigger = true;
+
+            var portal = go.AddComponent<ScenePortal>();
+            portal.targetRoom = Rooms.Prologue_Foyer;
+            portal.successDialogueId = "";  // 直接跳,不额外播对白
+            portal.highlightTarget = sr;
+            portal.fadeTime = 0.6f;
+            // 交互点:老人站在石拱门正下方地平线
+            var p = new GameObject("interactPoint").transform;
+            p.SetParent(go.transform, false);
+            p.position = new Vector3(pos.x, groundY, 0f);
+            portal.interactPoint = p;
+        }
+
+        static Sprite _solid;
+        static Sprite SolidSprite()
+        {
+            if (_solid != null) return _solid;
+            var tex = new Texture2D(2, 2);
+            var px = new Color[] { Color.white, Color.white, Color.white, Color.white };
+            tex.SetPixels(px); tex.Apply();
+            _solid = Sprite.Create(tex, new Rect(0, 0, 2, 2), new Vector2(0.5f, 0.5f), 2f);
+            return _solid;
         }
     }
 
-    /// <summary>神庙入口过场:老人自动走到石拱门下,一句提示,淡出跳 Foyer 内景。</summary>
+    /// <summary>神庙入口一次性引导独白。老人始终可控,不锁移动。</summary>
     public class PrologueGateDirector : MonoBehaviour
     {
-        Cutscene _cs;
-
         void Start()
         {
-            // 序幕内玩家不能自由走
+            // 玩家自控向右走,别锁
             var pc = PlayerController.Instance;
-            if (pc != null) pc.SetControllable(false);
+            if (pc != null) pc.SetControllable(true);
 
-            _cs = gameObject.AddComponent<Cutscene>();
-            _cs
-                .Add(new WaitStep(0.6f))
-                // 老年自动走到石拱门下
-                .Add(new WalkPlayerToStep(PrologueGateScene.ArchX))
-                .Add(new WaitStep(0.4f))
-                // 一句氛围旁白(不进对白表,直接文本)
-                .Add(new SayTextStep("(庞大的神庙近在眼前,你走到了石拱门下。)"))
-                .Add(new SayTextStep("(点击画面继续:走进神庙。)"))
-                // 淡出到第一幕神庙门厅内景
-                .Add(new GoToSceneStep(Rooms.Prologue_Foyer, 0.6f));
-            _cs.Play();
+            // 一次性引导(避免每次进都弹)
+            const string kFlag = "prologue_gate_entered";
+            if (GameState.GetFlag(kFlag)) return;
+            GameState.SetFlag(kFlag, true);
+
+            StartCoroutine(PlayIntro());
+        }
+
+        System.Collections.IEnumerator PlayIntro()
+        {
+            yield return new WaitForSeconds(0.5f);
+            bool done = false;
+            DialogueSystem.ShowText("(庞大的神庙近在眼前。走到石拱门下,点击进入。)", () => done = true);
+            while (!done) yield return null;
         }
     }
 }
