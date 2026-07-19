@@ -271,6 +271,7 @@ namespace LostGoddess
             // 取新场景根节点下的那一个。SceneRoomBuilder 用 SceneDef.roomName 命名根节点,
             // 而 Prologue_* 场景里各自又 rename 成了 Room_Prologue_XXX,所以两套名字都要试。
             var newRoot = GameObject.Find("Room_" + roomName)
+                       ?? GameObject.Find("Room_TempleGate")
                        ?? GameObject.Find("Room_TempleFoyer")
                        ?? GameObject.Find("Room_TempleChamber1F")
                        ?? GameObject.Find("Room_UpperHall")
@@ -306,7 +307,7 @@ namespace LostGoddess
                 "Room_" + Rooms.Prologue_Chamber2, "Room_" + Rooms.Prologue_Chase,
                 "Room_" + Rooms.Chapter1_Hall,
                 // SceneRoomBuilder 用 SceneDef.roomName 命名根节点,与 Prologue_* 逻辑房间名不同:
-                "Room_TempleFoyer", "Room_TempleChamber1F", "Room_UpperHall", "Room_Chamber2",
+                "Room_TempleGate", "Room_TempleFoyer", "Room_TempleChamber1F", "Room_UpperHall", "Room_Chamber2",
             })
             {
                 var g = GameObject.Find(n);

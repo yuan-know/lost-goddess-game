@@ -119,7 +119,30 @@ namespace LostGoddess.Content
             bgNearSprite = "bg_near",
         };
 
-        // 【神庙前厅内部】—— 序幕第一幕 Prologue_Foyer 真正的门厅
+        // 【神庙入口】—— 序幕第一幕 Prologue_Foyer 外景(推门场景)
+        //  剧本序列:黑暗森林 → 神庙入口(TempleGate,门外)→ 推门进 → 神庙前厅(TempleFoyer,门内)
+        //  美术:Scenes/TempleGate/
+        //   · bg_far.png(3400×1200)= 远景山影
+        //   · bg_temple.png(3400×1200)= 神庙建筑本体(当中层)
+        //   · bg_near.png(3400×1200)= 近景前景遮挡
+        //   · bg_full.png = 三层合成全景(备用,不用)
+        public static readonly SceneDef TempleGate = new SceneDef
+        {
+            roomName = "TempleGate",
+            bgPixelWidth = 3400f,
+            bgPixelHeight = 1200f,
+            bgPPU = 100f,
+            groundFromBottom = 0.13f,
+            groundY = -3.44f,
+            parallaxFar = 0.00f,
+            parallaxMid = 0.00f,
+            parallaxNear = 0.00f,
+            bgFarSprite = "bg_far",
+            bgMidSprite = "bg_temple",       // 神庙建筑本体作中层
+            bgNearSprite = "bg_near",
+        };
+
+        // 【神庙前厅内部】—— 主线大殿 Chapter1_Hall 用(觉醒后落地),序幕不用
         //  美术:Scenes/TempleFoyer/
         //   · bg_unlit_full.png(3400×1200)= 关灯全景(阴森初进 = 默认)
         //   · bg_lit_full.png / bg_lit_bg.png = 开灯版(待策划定触发条件)

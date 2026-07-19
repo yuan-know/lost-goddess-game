@@ -30,11 +30,11 @@ namespace LostGoddess.Content
 
         public static void Build()
         {
-            // 场景:策划稿 §2.7 说"复用 Foyer 的门 + 黑雾 overlay"—— Foyer 切了 TempleFoyer
-            //   之后,Chase 也跟着切,视觉上就是"大门开的一刻黑雾从门口涌进前厅"。
-            var room = SceneRoomBuilder.Build(SceneRoomBuilder.TempleFoyer);
+            // 场景:策划稿 §2.7 说"复用 Foyer 的门 + 黑雾 overlay"—— Foyer 是**神庙入口 TempleGate**
+            //   (外景推门场景),Chase 也用 TempleGate,视觉上就是"大门开的一刻黑雾从门口涌进来"。
+            var room = SceneRoomBuilder.Build(SceneRoomBuilder.TempleGate);
             room.name = "Room_" + Rooms.Prologue_Chase;
-            float groundY = SceneRoomBuilder.TempleFoyer.groundY;
+            float groundY = SceneRoomBuilder.TempleGate.groundY;
 
             PlayerBuilder.Build(GameState.CurrentEra, groundY, SpawnX);
 
