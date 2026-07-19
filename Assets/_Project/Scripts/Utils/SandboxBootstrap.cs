@@ -101,14 +101,21 @@ namespace LostGoddess
                 var p = sr.transform.position; p.y += dy; sr.transform.position = p;
             }
             _groundOffsetPct += deltaPct;
-            float suggested = 0.13f - _groundOffsetPct;
-            Flash($"地平线 {(_groundOffsetPct>=0?"+":"")}{_groundOffsetPct*100f:F0}% → groundFromBottom≈{suggested:F2}");
+
+            var def = LostGoddess.Content.SceneRoomBuilder.LastBuiltDef;
+            float basePct = def != null ? def.groundFromBottom : 0.13f;
+            float suggested = basePct - _groundOffsetPct;
+            Flash($"地平线 {(_groundOffsetPct>=0?"+":"")}{_groundOffsetPct*100f:F0}% → 建议 groundFromBottom={suggested:F3}");
         }
         void PrintGround()
         {
-            float suggested = 0.13f - _groundOffsetPct;
-            Debug.Log($"[Sandbox] {GameState.CurrentRoom} 累计微调 {_groundOffsetPct*100f:F0}%, SceneDef.groundFromBottom 建议改为 {suggested:F3}");
-            Flash($"建议 groundFromBottom = {suggested:F3}");
+            var def = LostGoddess.Content.SceneRoomBuilder.LastBuiltDef;
+            float basePct = def != null ? def.groundFromBottom : 0.13f;
+            float suggested = basePct - _groundOffsetPct;
+            float suggestedGroundY = -5f + 12f * suggested;
+            Debug.Log($"[Sandbox] {GameState.CurrentRoom} 累计微调 {(_groundOffsetPct>=0?"+":"")}{_groundOffsetPct*100f:F0}%, " +
+                      $"当前 groundFromBottom={basePct:F3}, 建议改为 {suggested:F3} (groundY={suggestedGroundY:F2})");
+            Flash($"建议 groundFromBottom={suggested:F3} groundY={suggestedGroundY:F2}");
         }
 
         void SwitchRoom(string roomName)
