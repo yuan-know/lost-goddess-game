@@ -61,7 +61,8 @@ namespace LostGoddess
 
         // ── 序幕 5 幕场景(2026-07-18 落地清单 §0.1) ──
         public const string Prologue_Woods       = "Prologue_Woods";        // 第 0 幕 荒山野道(复用黑暗森林视差)
-        public const string Prologue_Foyer       = "Prologue_Foyer";        // 第一幕 神庙门厅(复用神庙入口视差)
+        public const string Prologue_Gate        = "Prologue_Gate";         // 第 0 幕结尾 神庙入口(石拱门外景,纯过场)
+        public const string Prologue_Foyer       = "Prologue_Foyer";        // 第一幕 神庙门厅(内景,展台/黄铜石门/楼梯)
         public const string Prologue_Chamber1    = "Prologue_Chamber1";     // 密室 1:铁撬棍拾取
         public const string Prologue_Chamber2    = "Prologue_Chamber2";     // 密室 2:棺材切中年
         public const string Prologue_Chamber3    = "Prologue_Chamber3";     // 密室 3:陶罐钥匙切青年

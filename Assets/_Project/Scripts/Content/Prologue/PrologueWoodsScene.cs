@@ -8,7 +8,8 @@
 //    5) 老年独白 prologue_0_02
 //    6) 走到 x=13(神庙轮廓渐近)
 //    7) 老年独白 prologue_0_03
-//    8) 等玩家点击 → GoToScene(Prologue_Foyer)
+//    8) 等玩家点击 → GoToScene(**Prologue_Gate**)——石拱门外景过场
+//    9) Gate 场景走完 → GoToScene(Prologue_Foyer)——第一幕神庙门厅内景
 //
 //  场景生成:复用 DarkForest 三层视差(SceneRoomBuilder.DarkForest)。
 //  演员:PlayerBuilder.Build(Era.Old, groundY, spawnX)
@@ -83,9 +84,9 @@ namespace LostGoddess.Content
                 // 等玩家点击(此刻画面停在神庙轮廓前,提示"点击进入")
                 .Add(new SayTextStep("(点击画面继续:走向神庙大门)"))
 
-                // 切场景到神庙门厅
+                // 切场景到神庙入口(石拱门外景过场,不是内景第一幕)
                 .Add(new SetFlagStep(Flags.Prologue_MetTemple, true))
-                .Add(new GoToSceneStep(Rooms.Prologue_Foyer, 0.6f));
+                .Add(new GoToSceneStep(Rooms.Prologue_Gate, 0.6f));
 
             _cs.OnFinished += () =>
             {

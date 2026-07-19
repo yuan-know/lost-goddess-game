@@ -30,11 +30,11 @@ namespace LostGoddess.Content
 
         public static void Build()
         {
-            // 场景:策划稿 §2.7 说"复用 Foyer 的门 + 黑雾 overlay"—— Foyer 是**神庙入口 TempleGate**
-            //   (外景推门场景),Chase 也用 TempleGate,视觉上就是"大门开的一刻黑雾从门口涌进来"。
-            var room = SceneRoomBuilder.Build(SceneRoomBuilder.TempleGate);
+            // 场景:第四幕就是**第一幕神庙门厅**的黄铜大门被解锁后开了、黑雾从门后涌入,复用同一个内景 TempleFoyer。
+            //   剧本序列:门厅 Foyer(TempleFoyer 内景)→ 谜题解开 → 门开 → **本场景 Chase(仍是 TempleFoyer)** + 黑雾 overlay
+            var room = SceneRoomBuilder.Build(SceneRoomBuilder.TempleFoyer);
             room.name = "Room_" + Rooms.Prologue_Chase;
-            float groundY = SceneRoomBuilder.TempleGate.groundY;
+            float groundY = SceneRoomBuilder.TempleFoyer.groundY;
 
             PlayerBuilder.Build(GameState.CurrentEra, groundY, SpawnX);
 

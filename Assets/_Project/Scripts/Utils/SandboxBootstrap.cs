@@ -166,6 +166,11 @@ namespace LostGoddess
                 LostGoddess.Content.PrologueWoodsScene.Build();
                 return;
             }
+            if (roomName == Rooms.Prologue_Gate)
+            {
+                LostGoddess.Content.PrologueGateScene.Build();
+                return;
+            }
             if (roomName == Rooms.Prologue_Foyer)
             {
                 LostGoddess.Content.PrologueFoyerScene.Build();
@@ -302,7 +307,8 @@ namespace LostGoddess
             // 美术场景根节点(SceneRoomBuilder 建的)
             foreach (var n in new[] {
                 "Room_" + ROOM_DARK_FOREST, "Room_" + ROOM_TEMPLE_ENTRY,
-                "Room_" + Rooms.Prologue_Woods, "Room_" + Rooms.Prologue_Foyer,
+                "Room_" + Rooms.Prologue_Woods, "Room_" + Rooms.Prologue_Gate,
+                "Room_" + Rooms.Prologue_Foyer,
                 "Room_" + Rooms.Prologue_Chamber3, "Room_" + Rooms.Prologue_UpperHall,
                 "Room_" + Rooms.Prologue_Chamber2, "Room_" + Rooms.Prologue_Chase,
                 "Room_" + Rooms.Chapter1_Hall,

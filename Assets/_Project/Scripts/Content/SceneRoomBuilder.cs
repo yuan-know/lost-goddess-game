@@ -119,9 +119,10 @@ namespace LostGoddess.Content
             bgNearSprite = "bg_near",
         };
 
-        // 【神庙入口】—— 序幕第一幕 Prologue_Foyer 外景(推门场景)
-        //  剧本序列:黑暗森林 → 神庙入口(TempleGate,门外)→ 推门进 → 神庙前厅(TempleFoyer,门内)
-        //  美术:Scenes/TempleGate/
+        // 【神庙入口】—— 第 0 幕结尾 Prologue_Gate 外景(石拱门,纯过场)
+        //  剧本序列:黑暗森林 → **神庙入口 TempleGate**(石拱门下)→ 点击石拱门 → 神庙门厅内景(TempleFoyer)
+        //  ⚠ 这里**没有任何交互物**,老人走到石拱门位置自动切场景。
+        //  美术:Scenes/TempleGate/{bg_far, bg_temple, bg_near}
         //   · bg_far.png(3400×1200)= 远景山影
         //   · bg_temple.png(3400×1200)= 神庙建筑本体(当中层)
         //   · bg_near.png(3400×1200)= 近景前景遮挡
@@ -142,12 +143,15 @@ namespace LostGoddess.Content
             bgNearSprite = "bg_near",
         };
 
-        // 【神庙前厅内部】—— 主线大殿 Chapter1_Hall 用(觉醒后落地),序幕不用
+        // 【神庙门厅】—— 序幕第一幕 Prologue_Foyer(内景,黄铜石门+展台+楼梯+浮雕墙)
+        //  剧本第一幕就是**这里**:老人被石门锁死,展台上有凹槽,用岁月洞察看壁画图腾,
+        //   楼梯废墟老年爬不上去,进密室拾遗失物切青年 → 二楼获取透镜/齿轮箱 → 中年组装 →
+        //   放到展台上转圆盘解锁 → 石门开 → 第四幕黑雾。
         //  美术:Scenes/TempleFoyer/
         //   · bg_unlit_full.png(3400×1200)= 关灯全景(阴森初进 = 默认)
-        //   · bg_lit_full.png / bg_lit_bg.png = 开灯版(待策划定触发条件)
+        //   · bg_lit_full.png / bg_lit_bg.png = 开灯版(待策划定触发条件,可能是放投影仪之后)
         //   · prop_podium_lit.png / prop_podium_unlit.png = 展台单件(全画布定位)
-        //  第一阶段:只用关灯全景当远景,展台/开灯逻辑等策划答复后再加(见记忆里"明天问策划"清单)。
+        //  第一阶段:只用关灯全景当远景,展台/开灯逻辑等策划答复后再加。
         public static readonly SceneDef TempleFoyer = new SceneDef
         {
             roomName = "TempleFoyer",

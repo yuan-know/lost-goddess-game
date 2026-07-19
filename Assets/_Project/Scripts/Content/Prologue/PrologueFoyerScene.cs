@@ -25,15 +25,15 @@ namespace LostGoddess.Content
 
         public static void Build()
         {
-            // 场景:剧本序列 = 黑暗森林 → **神庙入口 TempleGate**(门外,推门场景)→ 推门进 → 大殿 TempleFoyer(门内,主线用)
-            //  美术:Resources/Scenes/TempleGate/{bg_far, bg_temple, bg_near}
-            //   · bg_far   远景山影
-            //   · bg_temple 神庙建筑本体(作中层)
-            //   · bg_near  近景前景遮挡(半透 α=0.55 剪影感)
-            //  推门交互:Interact_StoneDoor.OnClick → GoToScene(Chapter1_Hall) 落到内景 TempleFoyer。
-            var root = SceneRoomBuilder.Build(SceneRoomBuilder.TempleGate);
+            // 场景:第一幕【神庙门厅内景】—— 黄铜机械锁死的巨大石门 + 门前展台 + 楼梯废墟 + 浮雕墙
+            //   剧本序列 = 黑暗森林 → 神庙入口 TempleGate(石拱门外景过场)→ **本场景 内景 TempleFoyer**
+            //  美术:Resources/Scenes/TempleFoyer/bg_unlit_full.png (关灯全景)
+            //  ⚠ 开灯版(bg_lit_full / bg_lit_bg)和展台单件(prop_podium_lit/unlit)等策划确认亮灯触发条件后再接线
+            //  ⚠ 门厅内的交互物坐标(展台/大门/楼梯/壁画/密室3 Portal)是按旧 TempleEntry 背景算的 ——
+            //   切图后需按 TempleFoyer 视觉锚点重摆(等策划答复展台位置/楼梯位置)
+            var root = SceneRoomBuilder.Build(SceneRoomBuilder.TempleFoyer);
             root.name = "Room_" + Rooms.Prologue_Foyer;
-            float groundY = SceneRoomBuilder.TempleGate.groundY;
+            float groundY = SceneRoomBuilder.TempleFoyer.groundY;
 
             // 老人沿用当前 Era(从第 0 幕过来时是 Old)
             var player = PlayerBuilder.Build(GameState.CurrentEra, groundY, SpawnX);
