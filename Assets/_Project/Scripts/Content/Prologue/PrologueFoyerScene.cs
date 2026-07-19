@@ -47,42 +47,24 @@ namespace LostGoddess.Content
                 player.transform.localScale = s;
             }
 
-            // ── 交互物摆位:严格对齐 TempleEntry 背景的真实视觉锚点 ─────────
-            //  背景图 3400×1200 px, PPU=100, 图中心=世界原点 → 像素 X 换算世界 X:
-            //    worldX = (pixelX - 1700) / 100
-            //  从视觉分析拿到的关键锚点:
-            //    · 拱形石门中心 3120 px    → 世界 X = +14.2  (画面右端 82%)
-            //    · 门口台阶      3002~3384 → 世界 X ≈ +13~+17
-            //    · 平台中央空旷  1200~2200 → 世界 X ≈ -5~+5  (适合摆工作台)
-            //    · 左角断柱残碑  320~430   → 世界 X ≈ -13.5  (适合摆展台/壁画)
-            //  动线设计:老人 SpawnX=-8,进入门厅时**左侧**能看到 Portal/壁画/展台
-            //    (回头一望的洞察氛围), **右侧**是一路走过去的目标(工作台→楼梯→石门)。
-            //    朝右主动线保留"从荒山走进庙门"的推进感,不打乱。
-
-            // 展台:左角断柱旁 x=-11(比断柱残碑靠右一点点,方便和老人交互),矮墩式石台
-            BuildPodium(root.transform, new Vector2(-11f, groundY + 0.6f), groundY);
-
-            // 组合工作台(中年拼投影仪):平台中央空旷区 x=0
-            BuildAssembleTable(root.transform, new Vector2(0f, groundY + 0.5f), groundY);
-
-            // 石门:严格对齐拱门中心 x=+14.2,高门位置
-            BuildStoneDoor(root.transform, new Vector2(14.2f, groundY + 1.6f), groundY);
-
-            // 楼梯废墟:门左侧平台 x=+8("往二楼去"的动线锚点),占位期用矮墩表示
-            //   等美术在这个位置画一段坍塌石阶就自动对齐了
-            BuildStairs(root.transform, new Vector2(8f, groundY + 1.2f), groundY);
-
-            // ── 岁月洞察显影物 2 件套 ────────────────────────────────────
-            // 壁画显影:左侧断柱表面 x=-13(与远景断柱严格对齐),悬浮墙面高度
-            BuildMuralPhantom(root.transform, new Vector2(-13f, groundY + 2.2f));
-
-            // 二楼高亮点:楼梯废墟正上方 x=+8,悬浮更高,老年按 Q 时脉动闪光
-            //   视觉逻辑:老人朝楼梯看时,头顶浮起"通往二楼"的高光
-            BuildUpperHallGlow(root.transform, new Vector2(8f, groundY + 4.2f));
-
-            // ── 场景切换 Portal(左侧密室 3 = 切青年触发) ─────────────────
-            // 密室 3:场景最左端 x=-15.5,视觉上"从门厅退到密林深处"
-            BuildChamber3Portal(root.transform, new Vector2(-15.5f, groundY), groundY);
+            // ── 交互物摆位 ── 【暂时清空】 ────────────────────────────────
+            //  原本按旧 TempleEntry 背景算的坐标已确认全部错位(展台/工作台/楼梯/石门/壁画/二楼光斑/Portal),
+            //  切图到 TempleFoyer 新背景后需要重摆。等策划答复以下 4 个锚点再一行行接回:
+            //    · 展台在门厅哪一侧?老人视线焦点在哪?
+            //    · 楼梯废墟在背景图哪个像素范围?
+            //    · 石门(黄铜机械锁死)在图上的中心 x?
+            //    · 岁月洞察壁画贴哪面墙?
+            //  下方 Build*() helper 全部保留,新坐标定下来一行调用即可复活。
+            //  当前 Foyer 只保留:背景 + 老人 + 首帧独白 + Q 键洞察提示。玩家进来能走能听对白,
+            //   但没有任何点击目标——避免"道具浮空/穿模/落在墙里"的错乱观感。
+            //
+            //  BuildPodium(root.transform, new Vector2(???, groundY + ???), groundY);
+            //  BuildAssembleTable(root.transform, new Vector2(???, groundY + ???), groundY);
+            //  BuildStoneDoor(root.transform, new Vector2(???, groundY + ???), groundY);
+            //  BuildStairs(root.transform, new Vector2(???, groundY + ???), groundY);
+            //  BuildMuralPhantom(root.transform, new Vector2(???, groundY + ???));
+            //  BuildUpperHallGlow(root.transform, new Vector2(???, groundY + ???));
+            //  BuildChamber3Portal(root.transform, new Vector2(???, groundY), groundY);
 
             // ── 首帧演出 ────────────────────────────────────────────────
             root.AddComponent<PrologueFoyerDirector>();
