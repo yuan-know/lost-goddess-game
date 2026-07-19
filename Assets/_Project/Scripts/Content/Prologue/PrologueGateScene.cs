@@ -42,29 +42,43 @@ namespace LostGoddess.Content
 
         static void BuildArchPortal(Transform parent, Vector2 pos, float groundY)
         {
+            // pos.x = 石拱门画面中心 x,pos.y 不重要(下面按 y 范围重算中心)
+            // 判定块 y 范围要盖住"从地面到石拱门顶":TempleGate 图 3400×1200,
+            //   图底 y=-5,图顶 y=+7,石拱门画面高度 ~4~5 世界单位(下沿地面 ~+7 图占比)。
+            //   我们让判定块 y ∈ [groundY, groundY+7],覆盖脚底到拱门最高处。
+            const float archTopOffset = 7f;      // 拱门顶大约在地面上 7 单位
+            const float archBottomOffset = 0f;   // 拱门底就在地面
+            float centerY = groundY + (archTopOffset + archBottomOffset) * 0.5f;
+            float height  = archTopOffset - archBottomOffset;
+
             var go = new GameObject("Portal_ToFoyer_石拱门");
             go.transform.SetParent(parent, false);
-            go.transform.position = pos;
+            go.transform.position = new Vector3(pos.x, centerY, 0f);
 
-            // 不可见判定块(≈石拱门中心 3×3.5 世界单位,足够玩家点到)
+            // 不可见判定块(4×7 世界单位,足够任何"点石拱门"的位置命中)
+            //  · sortingOrder=70 > bg_near(60),点近景剪影下的拱门也响应
+            //  · debug 期给 15% 淡黄 tint 便于用户看到判定块的边界(以后改回 α=0)
             var sr = go.AddComponent<SpriteRenderer>();
             sr.sprite = SolidSprite();
-            sr.color = new Color(0f, 0f, 0f, 0f);  // 完全透明
-            sr.sortingOrder = 55;                    // 在近景 60 之下,可点
-            go.transform.localScale = new Vector3(3f, 3.5f, 1f);
+            sr.color = new Color(1f, 0.9f, 0.4f, 0.10f);  // 极淡黄(15%),验证期可视化,后期改 α=0
+            sr.sortingOrder = 70;
+            go.transform.localScale = new Vector3(4f, height, 1f);
             var col = go.AddComponent<BoxCollider2D>();
             col.isTrigger = true;
 
             var portal = go.AddComponent<ScenePortal>();
             portal.targetRoom = Rooms.Prologue_Foyer;
-            portal.successDialogueId = "";  // 直接跳,不额外播对白
+            portal.successDialogueId = "";
             portal.highlightTarget = sr;
             portal.fadeTime = 0.6f;
+
             // 交互点:老人站在石拱门正下方地平线
             var p = new GameObject("interactPoint").transform;
             p.SetParent(go.transform, false);
             p.position = new Vector3(pos.x, groundY, 0f);
             portal.interactPoint = p;
+
+            Debug.Log($"[Gate] Portal_ToFoyer built at x={pos.x} y∈[{groundY:F2},{groundY+archTopOffset:F2}] size=4×{height} → targetRoom={Rooms.Prologue_Foyer}");
         }
 
         static Sprite _solid;
