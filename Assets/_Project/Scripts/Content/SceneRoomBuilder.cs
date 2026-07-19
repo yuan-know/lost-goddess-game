@@ -97,8 +97,9 @@ namespace LostGoddess.Content
             bgPixelHeight = 1200f,
             bgPPU = 100f,
             // 2026-07-19 修正:按公式统一 groundY;原 -3.44 与 0.28 不一致
-            groundFromBottom = 0.28f,       // 洗礼池地面约图底 28% 处(运行时按 P 键校准)
-            groundY = -1.64f,               // = -5 + 12*0.28
+            // 2026-07-19 二修:截图显示老人仍轻微浮空于石台,再下调 0.11
+            groundFromBottom = 0.271f,      // 洗礼池石台顶约图底 27.1% 处(运行时按 P 键精校)
+            groundY = -1.75f,               // = -5 + 12*0.271
             parallaxFar = 0.00f,
             parallaxMid = 0.00f,
             parallaxNear = 0.00f,
