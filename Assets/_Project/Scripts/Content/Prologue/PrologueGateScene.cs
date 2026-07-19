@@ -21,10 +21,10 @@ namespace LostGoddess.Content
     public static class PrologueGateScene
     {
         public const float SpawnX = -8f;     // 老人在左端可见处出生
-        // 石拱门开口位置 —— 目测 TempleGate 图 3400×1200(世界宽 34,x∈[-17,+17]),
-        //   石拱门开口画面上偏右,大约在 x=+11.5(用户截图校准过一次)。
-        //   注:相机 clamp 允许 x 到 +17 右边界,+11.5 完全可视。
-        public const float ArchX  = 11.5f;
+        // 石拱门开口位置 —— 按用户第 2 次截图校准:相机 x=8.1、拱门洞口屏幕 x=78%
+        //   → 世界 x = -0.79 + 0.78 × 17.78 ≈ +13.1(拱门圆弧开口正中)。
+        //   注:相机 clamp maxX ≈ +8.11,可视右边界 ≈ +17,判定块完全可视。
+        public const float ArchX  = 13.1f;
 
         public static void Build()
         {
@@ -49,8 +49,8 @@ namespace LostGoddess.Content
             //   避免玩家点石墙误触发进门。开口范围目测:
             //     宽度 ~2.5 世界单位(拱门内侧净宽)
             //     高度 ~5 世界单位(地面到拱顶圆弧最高点)
-            const float archOpeningWidth  = 2.5f;
-            const float archOpeningHeight = 5f;
+            const float archOpeningWidth  = 3.0f;
+            const float archOpeningHeight = 5.5f;
             float centerY = groundY + archOpeningHeight * 0.5f;
 
             var go = new GameObject("Portal_ToFoyer_石拱门");
