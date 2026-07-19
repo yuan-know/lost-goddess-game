@@ -93,7 +93,7 @@ namespace LostGoddess.Content
             bgPixelWidth = 3400f,
             bgPixelHeight = 1200f,
             bgPPU = 100f,
-            groundFromBottom = 0.13f,
+            groundFromBottom = 0.28f,       // 2026-07-19 实测图上地平线在图底 28% 处(原 0.13 导致人物浮空)
             groundY = -3.44f,
             parallaxFar = 0.00f,
             parallaxMid = 0.00f,
@@ -105,21 +105,22 @@ namespace LostGoddess.Content
 
         // 【前厅二楼坍塌的回廊】—— UpperHall 铁笼齿轮箱场景专用美术
         //  美术:Scenes/UpperHall/{bg_far, bg_near, bg_full}
-        //   · bg_far.png(2544×912)= 回廊背景(比舞台窄,居中显示)
+        //   · bg_far.png(2544×912)= 回廊背景(比舞台窄 —— 用 bg_full 3400×1200 作远景铺满,避免露黑边)
         //   · bg_near.png(3400×1200)= 前景(铁笼齿轮箱等)
-        //  bg_far 尺寸偏小,视差 factor 保持 0 让它跟随相机居中,避免露边。
+        //  2026-07-19 修:原来用 bg_far,舞台是 3400 → 左右两边各 4.28 单位空白露黑底,
+        //    改用 bg_full 作远景(3400×1200 铺满舞台),bg_near 依然作近景剪影层。
         public static readonly SceneDef PrologueUpperHall = new SceneDef
         {
             roomName = "UpperHall",
             bgPixelWidth = 3400f,
             bgPixelHeight = 1200f,
             bgPPU = 100f,
-            groundFromBottom = 0.13f,
+            groundFromBottom = 0.12f,       // 实测 bg_full 地平线在图底 12% 处
             groundY = -3.44f,
             parallaxFar = 0.00f,
             parallaxMid = 0.00f,
             parallaxNear = 0.00f,
-            bgFarSprite = "bg_far",
+            bgFarSprite = "bg_full",         // 用 3400×1200 全景当远景铺满,不再用 2544 的 bg_far
             bgMidSprite = "",                // 无中层
             bgNearSprite = "bg_near",
         };
@@ -163,7 +164,8 @@ namespace LostGoddess.Content
             bgPixelWidth = 3400f,
             bgPixelHeight = 1200f,
             bgPPU = 100f,
-            groundFromBottom = 0.13f,
+            groundFromBottom = 0.13f,       // 保守值:图底刚好贴相机底(orthoSize=5 时 bottomY=-5.0)
+                                            //   Foyer 图底 6% 位置是地砖反光突变行,不是真地平线 → 沿用 0.13
             groundY = -3.44f,
             parallaxFar = 0.00f,
             parallaxMid = 0.00f,
@@ -185,14 +187,14 @@ namespace LostGoddess.Content
             bgPixelWidth = 3400f,           // 舞台按 3400 算(bg_far 巨图溢出,靠相机 clamp 裁掉)
             bgPixelHeight = 1200f,
             bgPPU = 100f,
-            groundFromBottom = 0.13f,
+            groundFromBottom = 0.25f,       // 实测 Chamber2/bg_full 地平线在图底 25% 处
             groundY = -3.44f,
             parallaxFar = 0.00f,
             parallaxMid = 0.00f,
             parallaxNear = 0.00f,
-            bgFarSprite = "bg_far",
+            bgFarSprite = "bg_full",         // 用 bg_full 3400×1200 铺满舞台,避免 bg_far 6656 露出诡异构图
             bgMidSprite = "",
-            bgNearSprite = "bg_near",
+            bgNearSprite = "",               // 暂不加 bg_near(前景剪影可能挡视觉)
         };
 
         // ── 2026-07-19 策划场景切换图新增 3 张真实美术接入 ──
@@ -208,7 +210,7 @@ namespace LostGoddess.Content
             bgPixelWidth = 3400f,
             bgPixelHeight = 1200f,
             bgPPU = 100f,
-            groundFromBottom = 0.13f,
+            groundFromBottom = 0.26f,       // 实测图上地平线在图底 26% 处(祭台底 = 地面)
             groundY = -3.44f,
             parallaxFar = 0.00f,
             parallaxMid = 0.00f,
@@ -225,40 +227,37 @@ namespace LostGoddess.Content
         public static readonly SceneDef GearRoom = new SceneDef
         {
             roomName = "GearRoom",
+            resourceFolderOverride = "Chamber1",
             bgPixelWidth = 3400f,
             bgPixelHeight = 1200f,
             bgPPU = 100f,
-            groundFromBottom = 0.13f,
+            groundFromBottom = 0.16f,       // 实测 Chamber1 地平线在图底 16% 处
             groundY = -3.44f,
             parallaxFar = 0.00f,
             parallaxMid = 0.00f,
             parallaxNear = 0.00f,
-            bgFarSprite = "bg_far",
+            bgFarSprite = "bg_full",         // 全景当远景铺满
             bgMidSprite = "",
-            bgNearSprite = "bg_near",
+            bgNearSprite = "",               // bg_near 前景暂不接(骨骸剪影可能挡老人)
         };
 
         // 【石雕室】—— Prologue_StatueRoom(前厅右 2,策划图 "方格墙 + 中央人形石雕像")
-        //  美术直接复用 Chamber2 目录(bg_far 里有大型无头长袍立像 + 8 个小雕像 + 壁龛墙 = 完美对应)
-        //  ⚠ Chamber2 的策划语义是"棺材小游戏切中年密室"(Prologue_Chamber2),但这张背景图的
-        //   视觉内容就是策划切换图右链末端的"石雕室",两者共享同一张美术。
-        //  为避免根节点命名冲突,给这里换 roomName = "StatueRoom",Resources 路径仍指向 Chamber2/。
+        //  美术直接复用 Chamber2 目录(bg_full 3400×1200,里面有大型无头长袍立像 + 8 个小雕像 + 壁龛墙)
         public static readonly SceneDef StatueRoom = new SceneDef
         {
             roomName = "StatueRoom",
+            resourceFolderOverride = "Chamber2",
             bgPixelWidth = 3400f,
             bgPixelHeight = 1200f,
             bgPPU = 100f,
-            groundFromBottom = 0.13f,
+            groundFromBottom = 0.25f,       // 实测 Chamber2/bg_full 地平线在图底 25% 处
             groundY = -3.44f,
             parallaxFar = 0.00f,
             parallaxMid = 0.00f,
             parallaxNear = 0.00f,
-            // 强制走 Chamber2 资源目录(SceneRoomBuilder 默认按 roomName 找,这里手动指定)
-            resourceFolderOverride = "Chamber2",
-            bgFarSprite = "bg_far",
+            bgFarSprite = "bg_full",         // 用 bg_full 铺满 3400,不用 bg_far 6656 巨图
             bgMidSprite = "",
-            bgNearSprite = "bg_near",
+            bgNearSprite = "",
         };
 
         /// <summary>按定义构建场景:三层背景 + WalkableArea + 相机跟随。返回根节点。</summary>

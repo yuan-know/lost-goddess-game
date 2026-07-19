@@ -22,8 +22,8 @@ namespace LostGoddess.Content
         public static void Build()
         {
             // 场景:美术已给「前厅二楼坍塌的回廊」专用图,SceneRoomBuilder 会自动加载
-            //   Resources/Scenes/UpperHall/{bg_far, bg_near, bg_full}。
-            //   bg_mid 缺图 warn 无害;bg_near 是前景铁笼/齿轮箱剪影。
+            //   Resources/Scenes/UpperHall/{bg_full, bg_near}。
+            //   2026-07-19 修:改用 bg_full(3400×1200)当远景铺满,不再用 bg_far(2544×912)避免左右露黑边。
             var room = SceneRoomBuilder.Build(SceneRoomBuilder.PrologueUpperHall);
             room.name = "Room_" + Rooms.Prologue_UpperHall;
             float groundY = SceneRoomBuilder.PrologueUpperHall.groundY;
@@ -32,20 +32,24 @@ namespace LostGoddess.Content
             //       只按当前 Era 建 Player。剧情里必然是 Young。
             PlayerBuilder.Build(GameState.CurrentEra, groundY, SpawnX);
 
-            // ── 铁撬棍(青年拾取,拿了才能撬铁笼) ────────────────────
-            BuildCrowbarPickup(room.transform, new Vector2(-8f, groundY + 0.3f), groundY);
+            // ── 交互物摆位:【暂时清空】 ────────────────────────────────
+            //  原本按旧背景猜的坐标全部错位(撬棍/铁笼/齿轮箱/齿轮机关),用户 2026-07-19
+            //  截图确认漂浮/位置不对。等策划给出各道具在新 bg_full 里的像素锚点再一行行接回:
+            //   · 铁撬棍地面掉落位置?
+            //   · 铁笼在图上左/中/右哪个像素范围?
+            //   · 齿轮箱位置?
+            //   · 齿轮机关(切中年触发点)位置?
+            //  下方 Build*() helper 全部保留,新坐标定下来一行调用即可复活。
+            //
+            //  BuildCrowbarPickup(room.transform, new Vector2(???, groundY + ???), groundY);
+            //  BuildIronCage    (room.transform, new Vector2(???, groundY + ???), groundY);
+            //  BuildGearBox     (room.transform, new Vector2(???, groundY + ???), groundY);
+            //  BuildGearsMechanism(room.transform, new Vector2(???, groundY + ???), groundY);
 
-            // ── 铁笼 ────────────────────────────────────────────────
-            BuildIronCage(room.transform, new Vector2(0f, groundY + 1.0f), groundY);
-
-            // ── 齿轮箱 ──────────────────────────────────────────────
-            BuildGearBox(room.transform, new Vector2(5f, groundY + 0.8f), groundY);
-
-            // ── 齿轮机关(触发切场景) ─────────────────────────────
-            BuildGearsMechanism(room.transform, new Vector2(10f, groundY + 1.4f), groundY);
-
-            // ── 楼梯口 Portal(回门厅) ────────────────────────────
-            BuildStairsPortal(room.transform, new Vector2(-14f, groundY), groundY);
+            // ── 楼梯口 Portal(策划切换图 2026-07-19: 朝左 → 二楼密室) ──
+            //  按新 bg_full 视觉,左端明显是通往下一房间的暗区,右端是密室尽头。
+            //  暂时挂在场景左端 x=-15,让玩家能返回;真实梯子位置等策划答复再挪。
+            BuildStairsPortal(room.transform, new Vector2(-15f, groundY + 1.5f), groundY);
 
             room.AddComponent<PrologueUpperHallDirector>();
         }
@@ -171,7 +175,7 @@ namespace LostGoddess.Content
             if (pc != null) pc.SetControllable(false);
             var cs = gameObject.AddComponent<Cutscene>();
             cs.Add(new WaitStep(0.4f))
-              .Add(new SayTextStep("(二楼回廊——铁笼、齿轮箱、机关整齐排布,像被谁刻意留下的谜题。)"));
+              .Add(new SayTextStep("(二楼回廊——石砖回廊在前,道具位置等策划锚点。走到左边缘可返回二楼密室。)"));
             cs.OnFinished += () => { if (pc != null) pc.SetControllable(true); };
             cs.Play();
         }
