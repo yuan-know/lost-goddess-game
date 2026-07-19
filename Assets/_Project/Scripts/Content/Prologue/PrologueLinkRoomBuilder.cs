@@ -30,19 +30,20 @@ namespace LostGoddess.Content
         public string rightRoom;   // 朝右 Portal 目标(空=不建右出口)
         public string title;       // 中文名(HUD/首帧独白显示)
         public string upRoom;      // 朝上(爬梯)Portal 目标(空=不建;仅 LadderChamber 用)
+        public SceneDef scene;     // 用哪份美术 SceneDef(空=退回 DarkForest 占位)
     }
 
     public static class PrologueLinkRoomBuilder
     {
         public static void Build(LinkRoomDef def)
         {
-            // 背景:DarkForest 三层视差先顶着(等美术出对应房间图后再切 SceneDef)
-            var root = SceneRoomBuilder.Build(SceneRoomBuilder.DarkForest);
+            // 背景:优先用 def.scene(真图),缺则退回 DarkForest 占位视差
+            var sceneDef = def.scene ?? SceneRoomBuilder.DarkForest;
+            var root = SceneRoomBuilder.Build(sceneDef);
             root.name = "Room_" + def.roomName;
-            float groundY = SceneRoomBuilder.DarkForest.groundY;
+            float groundY = sceneDef.groundY;
 
-            // 老人:每次进场时,如果**从左边过来**就落在场景左端可见处,朝右;
-            //  从右边过来落右端朝左。SceneLoader 没带来源信息 → 简化处理:统一落在场景中央
+            // 老人落在场景中央,让玩家自己走向两侧(SceneLoader 没带来源方向信息)
             PlayerBuilder.Build(GameState.CurrentEra, groundY, 0f);
 
             // 场景左端 Portal:朝左走 = 返回上一房间

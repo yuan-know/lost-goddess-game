@@ -303,6 +303,9 @@ namespace LostGoddess
                        ?? GameObject.Find("Room_TempleChamber1F")
                        ?? GameObject.Find("Room_UpperHall")
                        ?? GameObject.Find("Room_Chamber2")
+                       ?? GameObject.Find("Room_LadderChamber")
+                       ?? GameObject.Find("Room_GearRoom")
+                       ?? GameObject.Find("Room_StatueRoom")
                        ?? GameObject.Find("Room_TempleEntry")
                        ?? GameObject.Find("Room_DarkForest");
             if (newRoot != null)
@@ -339,6 +342,7 @@ namespace LostGoddess
                 "Room_" + Rooms.Prologue_StatueRoom, "Room_" + Rooms.Prologue_UpperChamber,
                 // SceneRoomBuilder 用 SceneDef.roomName 命名根节点,与 Prologue_* 逻辑房间名不同:
                 "Room_TempleGate", "Room_TempleFoyer", "Room_TempleChamber1F", "Room_UpperHall", "Room_Chamber2",
+                "Room_LadderChamber", "Room_GearRoom", "Room_StatueRoom",   // 2026-07-19 前厅左右链新增
             })
             {
                 var g = GameObject.Find(n);

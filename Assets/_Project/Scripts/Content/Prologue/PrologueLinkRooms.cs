@@ -6,7 +6,11 @@
 //    Foyer ↔ GearRoom ↔ StatueRoom        (右链)
 //    LadderChamber↑ UpperChamber ↔ UpperHall   (二楼链)
 //
-//  每个场景只做拓扑打通,美术占位期用 DarkForest 三层视差顶着。
+//  每个场景真实美术接线:
+//    LadderChamber → Scenes/LadderChamber/ (bg_far + prop_ladder)
+//    GearRoom      → Scenes/Chamber1/      (齿轮骨骸间 bg_far + bg_near)
+//    StatueRoom    → Scenes/Chamber2/      (人形石雕像 + 8 小雕像 + 方格墙)
+//    UpperChamber  → Scenes/LadderChamber/ (二楼密室暂复用梯子室,美术后续可另出)
 // ============================================================================
 
 namespace LostGoddess.Content
@@ -22,6 +26,7 @@ namespace LostGoddess.Content
                 rightRoom = Rooms.Prologue_Foyer,        // 朝右 → 返回神庙前厅
                 upRoom    = Rooms.Prologue_UpperChamber, // 中央爬梯 → 二楼密室
                 title     = "梯子密室",
+                scene     = SceneRoomBuilder.LadderChamber,
             });
         }
     }
@@ -36,6 +41,7 @@ namespace LostGoddess.Content
                 leftRoom  = Rooms.Prologue_Foyer,
                 rightRoom = Rooms.Prologue_StatueRoom,
                 title     = "齿轮骨骸间",
+                scene     = SceneRoomBuilder.GearRoom,
             });
         }
     }
@@ -50,6 +56,7 @@ namespace LostGoddess.Content
                 leftRoom  = Rooms.Prologue_GearRoom,
                 rightRoom = "",   // 右端尽头
                 title     = "石雕室",
+                scene     = SceneRoomBuilder.StatueRoom,
             });
         }
     }
@@ -59,11 +66,14 @@ namespace LostGoddess.Content
         public static void Build()
         {
             // 二楼密室:爬梯上来的落地房(向左爬回梯子密室 / 向右到二楼连廊)
+            //  暂复用 LadderChamber 美术(策划图第二排"爬楼梯切二楼"格子的构图正是这个),
+            //  等美术出"二楼密室专图"后 SceneDef 换一下即可。
             PrologueLinkRoomBuilder.Build(new LinkRoomDef {
                 roomName  = Rooms.Prologue_UpperChamber,
                 leftRoom  = Rooms.Prologue_LadderChamber,
                 rightRoom = Rooms.Prologue_UpperHall,
                 title     = "二楼密室",
+                scene     = SceneRoomBuilder.LadderChamber,
             });
         }
     }

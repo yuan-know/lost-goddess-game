@@ -36,6 +36,11 @@ namespace LostGoddess.Content
         public string bgFarSprite;
         public string bgMidSprite;
         public string bgNearSprite;
+
+        // 覆盖 Resources 目录名(为空则用 roomName)。
+        //   用途:两个逻辑房间共享同一美术目录时(如 StatueRoom 用 Chamber2 图),
+        //   把 resourceFolderOverride = "Chamber2" 即可,roomName 仍保持逻辑区分。
+        public string resourceFolderOverride;
     }
 
     public static class SceneRoomBuilder
@@ -190,6 +195,72 @@ namespace LostGoddess.Content
             bgNearSprite = "bg_near",
         };
 
+        // ── 2026-07-19 策划场景切换图新增 3 张真实美术接入 ──
+
+        // 【梯子密室】—— Prologue_LadderChamber(前厅左 2,策划图"朝左走回到梯子密室")
+        //  美术:Scenes/LadderChamber/{bg_far, bg_full, prop_ladder}
+        //   · bg_far.png(3400×1200)= 石墙 + 中央祭台的房间
+        //   · prop_ladder.png(3400×1200)= 木梯单件(像素 bbox x∈[758,1008] → 世界 x ≈ -8.17)
+        //   · 无 bg_near/bg_mid,ladder 作近景层用于视觉遮挡
+        public static readonly SceneDef LadderChamber = new SceneDef
+        {
+            roomName = "LadderChamber",
+            bgPixelWidth = 3400f,
+            bgPixelHeight = 1200f,
+            bgPPU = 100f,
+            groundFromBottom = 0.13f,
+            groundY = -3.44f,
+            parallaxFar = 0.00f,
+            parallaxMid = 0.00f,
+            parallaxNear = 0.00f,
+            bgFarSprite = "bg_far",
+            bgMidSprite = "",
+            bgNearSprite = "prop_ladder",   // 木梯当近景剪影层
+        };
+
+        // 【齿轮骨骸间】—— Prologue_GearRoom(前厅右 1,策划图"以神庙前厅为中心 朝右走所切换的密室"第 1 间)
+        //  美术:Scenes/Chamber1/{bg_far, bg_near, bg_full}
+        //   · bg_far.png(3400×1200)= 石墙 + 齿轮/管道/骨骸背景
+        //   · bg_near.png(3400×1200)= 前景骨骸/管道剪影
+        public static readonly SceneDef GearRoom = new SceneDef
+        {
+            roomName = "GearRoom",
+            bgPixelWidth = 3400f,
+            bgPixelHeight = 1200f,
+            bgPPU = 100f,
+            groundFromBottom = 0.13f,
+            groundY = -3.44f,
+            parallaxFar = 0.00f,
+            parallaxMid = 0.00f,
+            parallaxNear = 0.00f,
+            bgFarSprite = "bg_far",
+            bgMidSprite = "",
+            bgNearSprite = "bg_near",
+        };
+
+        // 【石雕室】—— Prologue_StatueRoom(前厅右 2,策划图 "方格墙 + 中央人形石雕像")
+        //  美术直接复用 Chamber2 目录(bg_far 里有大型无头长袍立像 + 8 个小雕像 + 壁龛墙 = 完美对应)
+        //  ⚠ Chamber2 的策划语义是"棺材小游戏切中年密室"(Prologue_Chamber2),但这张背景图的
+        //   视觉内容就是策划切换图右链末端的"石雕室",两者共享同一张美术。
+        //  为避免根节点命名冲突,给这里换 roomName = "StatueRoom",Resources 路径仍指向 Chamber2/。
+        public static readonly SceneDef StatueRoom = new SceneDef
+        {
+            roomName = "StatueRoom",
+            bgPixelWidth = 3400f,
+            bgPixelHeight = 1200f,
+            bgPPU = 100f,
+            groundFromBottom = 0.13f,
+            groundY = -3.44f,
+            parallaxFar = 0.00f,
+            parallaxMid = 0.00f,
+            parallaxNear = 0.00f,
+            // 强制走 Chamber2 资源目录(SceneRoomBuilder 默认按 roomName 找,这里手动指定)
+            resourceFolderOverride = "Chamber2",
+            bgFarSprite = "bg_far",
+            bgMidSprite = "",
+            bgNearSprite = "bg_near",
+        };
+
         /// <summary>按定义构建场景:三层背景 + WalkableArea + 相机跟随。返回根节点。</summary>
         public static GameObject Build(SceneDef def)
         {
@@ -252,10 +323,12 @@ namespace LostGoddess.Content
         {
             // 空名字 = 显式跳过这一层(不 warn),用于只有 1~2 层美术的场景
             if (string.IsNullOrEmpty(spriteName)) return;
-            var sp = Resources.Load<Sprite>($"Scenes/{def.roomName}/{spriteName}");
+            // resourceFolderOverride 允许多个逻辑房间共享同一份美术目录(如 StatueRoom → Chamber2)
+            string folder = string.IsNullOrEmpty(def.resourceFolderOverride) ? def.roomName : def.resourceFolderOverride;
+            var sp = Resources.Load<Sprite>($"Scenes/{folder}/{spriteName}");
             if (sp == null)
             {
-                Debug.LogWarning($"[SceneRoomBuilder] 找不到背景图 Resources/Scenes/{def.roomName}/{spriteName}");
+                Debug.LogWarning($"[SceneRoomBuilder] 找不到背景图 Resources/Scenes/{folder}/{spriteName}");
                 return;
             }
             var go = new GameObject(spriteName);
