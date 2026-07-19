@@ -35,17 +35,15 @@ namespace LostGoddess.Content
             // 老人 - 按当前 Era(从门厅进来通常是 Old)
             PlayerBuilder.Build(GameState.CurrentEra, groundY, SpawnX);
 
-            // ── 3 个陶罐(其中一个藏钥匙) ─────────────────────────────
-            // 用 Time.frameCount % 3 作伪随机(避免用 Random 使跨存档不确定)
-            int keyIndex = Mathf.Abs(GameState.CurrentRoom.GetHashCode()) % 3;
-            for (int i = 0; i < 3; i++)
-            {
-                BuildPottery(room.transform, i, new Vector2(-2f + i * 2f, groundY + 0.5f),
-                    hasKey: (i == keyIndex), groundY: groundY);
-            }
-
-            // ── 池底锁孔 ────────────────────────────────────────────
-            BuildLockhole(room.transform, new Vector2(6f, groundY + 0.3f), groundY);
+            // ── 陶罐/锁孔占位已清空 ─────────────────────────────────
+            //  用户 2026-07-19 截图确认位置不对,待提供具体道具位置示意图后再按图接线。
+            //  下方 BuildPottery / BuildLockhole helper 保留,新坐标定下来一行调用即可复活。
+            //
+            //  int keyIndex = Mathf.Abs(GameState.CurrentRoom.GetHashCode()) % 3;
+            //  for (int i = 0; i < 3; i++)
+            //      BuildPottery(room.transform, i, new Vector2(-2f + i * 2f, groundY + 0.5f),
+            //          hasKey: (i == keyIndex), groundY: groundY);
+            //  BuildLockhole(room.transform, new Vector2(6f, groundY + 0.3f), groundY);
 
             // ── 返回 Portal(右端 → 梯子密室,策划图 2026-07-19) ────
             //  陶罐间(左 3)朝右走 = 回梯子密室(左 2),再朝右才回神庙前厅
