@@ -47,24 +47,25 @@ namespace LostGoddess.Content
                 player.transform.localScale = s;
             }
 
-            // ── 交互物摆位 ── 【暂时清空】 ────────────────────────────────
-            //  原本按旧 TempleEntry 背景算的坐标已确认全部错位(展台/工作台/楼梯/石门/壁画/二楼光斑/Portal),
-            //  切图到 TempleFoyer 新背景后需要重摆。等策划答复以下 4 个锚点再一行行接回:
-            //    · 展台在门厅哪一侧?老人视线焦点在哪?
-            //    · 楼梯废墟在背景图哪个像素范围?
-            //    · 石门(黄铜机械锁死)在图上的中心 x?
-            //    · 岁月洞察壁画贴哪面墙?
-            //  下方 Build*() helper 全部保留,新坐标定下来一行调用即可复活。
-            //  当前 Foyer 只保留:背景 + 老人 + 首帧独白 + Q 键洞察提示。玩家进来能走能听对白,
-            //   但没有任何点击目标——避免"道具浮空/穿模/落在墙里"的错乱观感。
-            //
-            //  BuildPodium(root.transform, new Vector2(???, groundY + ???), groundY);
-            //  BuildAssembleTable(root.transform, new Vector2(???, groundY + ???), groundY);
-            //  BuildStoneDoor(root.transform, new Vector2(???, groundY + ???), groundY);
-            //  BuildStairs(root.transform, new Vector2(???, groundY + ???), groundY);
-            //  BuildMuralPhantom(root.transform, new Vector2(???, groundY + ???));
-            //  BuildUpperHallGlow(root.transform, new Vector2(???, groundY + ???));
-            //  BuildChamber3Portal(root.transform, new Vector2(???, groundY), groundY);
+            // ── 交互物摆位:严格对齐 TempleFoyer 背景 + 策划切换图(2026-07-19) ──
+            //  背景图 3400×1200 px, PPU=100, 图中心=世界原点 → 像素 X 换算世界 X:
+            //    worldX = (pixelX - 1700) / 100
+            //  策划切换图约束:前厅里**只有一个石质展台**,其他都是纯装饰(壁画/烛台/双开石门都不能点)。
+            //  拓扑:
+            //    朝左走到屏幕左边缘 → 切场景到梯子密室(LadderChamber)
+            //    朝右走到屏幕右边缘 → 切场景到齿轮骨骸间(GearRoom)
+            //  ⚠ 展台真实像素坐标需要按新 TempleFoyer 背景视觉锚点校准 —— 目前放场景中央 x=0
+
+            // 展台:场景中央,老年沿用旧 Interact_Podium 逻辑(点它 = 洞察 os / 显影壁画等)
+            BuildPodium(root.transform, new Vector2(0f, groundY + 0.6f), groundY);
+
+            // 场景左边缘 Portal:走到左端点击 → 梯子密室
+            BuildEdgePortal(root.transform, Rooms.Prologue_LadderChamber, "Portal_Left_Ladder",
+                new Vector2(-15f, groundY + 1.5f), groundY, isLeft: true);
+
+            // 场景右边缘 Portal:走到右端点击 → 齿轮骨骸间
+            BuildEdgePortal(root.transform, Rooms.Prologue_GearRoom, "Portal_Right_Gear",
+                new Vector2(15f, groundY + 1.5f), groundY, isLeft: false);
 
             // ── 首帧演出 ────────────────────────────────────────────────
             root.AddComponent<PrologueFoyerDirector>();
@@ -125,6 +126,42 @@ namespace LostGoddess.Content
             portal.successDialogueId = "";  // 直接跳
             portal.highlightTarget = go.GetComponent<SpriteRenderer>();
             portal.interactPoint = MakePoint(go.transform, new Vector2(pos.x + 1.5f, groundY));
+            return go;
+        }
+
+        // 场景左/右边缘的"看不见的判定块"Portal ── 策划切换图 2026-07-19 新增
+        //   size 3×5.5,sortingOrder=70,占位期 α=0.10 淡色 debug tint(左蓝右红),
+        //   正式期把 alpha 改 0 即可(不改逻辑)。
+        static GameObject BuildEdgePortal(Transform parent, string targetRoom, string name,
+                                          Vector2 pos, float groundY, bool isLeft)
+        {
+            const float w = 3.0f, h = 5.5f;
+            float centerY = groundY + h * 0.5f;
+            var go = new GameObject(name);
+            go.transform.SetParent(parent, false);
+            go.transform.position = new Vector3(pos.x, centerY, 0f);
+
+            var sr = go.AddComponent<SpriteRenderer>();
+            sr.sprite = SolidSprite();
+            sr.color = isLeft ? new Color(0.3f, 0.6f, 1f, 0.10f)
+                              : new Color(1f, 0.5f, 0.4f, 0.10f);
+            sr.sortingOrder = 70;
+            go.transform.localScale = new Vector3(w, h, 1f);
+            var col = go.AddComponent<BoxCollider2D>();
+            col.isTrigger = true;
+
+            var portal = go.AddComponent<ScenePortal>();
+            portal.targetRoom = targetRoom;
+            portal.successDialogueId = "";
+            portal.highlightTarget = sr;
+            portal.fadeTime = 0.6f;
+
+            // interactPoint 在 Portal 内侧,老人走到那里再触发切场景
+            float ipx = isLeft ? pos.x + 1.5f : pos.x - 1.5f;
+            var ip = new GameObject("interactPoint").transform;
+            ip.SetParent(go.transform, false);
+            ip.position = new Vector3(ipx, groundY, 0f);
+            portal.interactPoint = ip;
             return go;
         }
 

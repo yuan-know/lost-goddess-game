@@ -68,6 +68,15 @@ namespace LostGoddess
         public const string Prologue_Chamber3    = "Prologue_Chamber3";     // 密室 3:陶罐钥匙切青年
         public const string Prologue_UpperHall   = "Prologue_UpperHall";    // 第二幕 二楼回廊(铁笼齿轮箱)
         public const string Prologue_Chase       = "Prologue_Chase";        // 第四幕 黑雾追击剧情杀
+
+        // ── 2026-07-19 策划场景切换图新增(神庙前厅左右链) ──
+        // 前厅左链:Foyer ↔ LadderChamber(左2,梯子密室) ↔ Chamber3(左3,陶罐间)
+        // 前厅右链:Foyer ↔ GearRoom(右1,齿轮骨骸间) ↔ StatueRoom(右2,石雕室)
+        // 二楼链 :LadderChamber↑UpperChamber(二楼密室) ↔ UpperHall(二楼连廊)
+        public const string Prologue_LadderChamber = "Prologue_LadderChamber"; // 前厅左 2:梯子密室(木梯+石台+石门)
+        public const string Prologue_GearRoom      = "Prologue_GearRoom";      // 前厅右 1:齿轮骨骸间
+        public const string Prologue_StatueRoom    = "Prologue_StatueRoom";    // 前厅右 2:方格墙+人形石雕像
+        public const string Prologue_UpperChamber  = "Prologue_UpperChamber";  // 梯子密室爬上来的落地(过场,朝右→二楼连廊)
         public const string Chapter1_Hall        = "Chapter1_Hall";         // 序幕结束落地(主线起点)
     }
 

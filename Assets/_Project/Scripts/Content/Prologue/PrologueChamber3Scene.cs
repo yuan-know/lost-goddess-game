@@ -47,8 +47,10 @@ namespace LostGoddess.Content
             // ── 池底锁孔 ────────────────────────────────────────────
             BuildLockhole(room.transform, new Vector2(6f, groundY + 0.3f), groundY);
 
-            // ── 返回门厅 Portal(左端) ──────────────────────────────
-            BuildBackPortal(room.transform, new Vector2(-14f, groundY), groundY);
+            // ── 返回 Portal(右端 → 梯子密室,策划图 2026-07-19) ────
+            //  陶罐间(左 3)朝右走 = 回梯子密室(左 2),再朝右才回神庙前厅
+            BuildBackPortal(room.transform, new Vector2(14f, groundY), groundY,
+                            Rooms.Prologue_LadderChamber);
 
             // 首帧:一句独白引路(仅首次)
             room.AddComponent<PrologueChamber3Director>();
@@ -75,14 +77,15 @@ namespace LostGoddess.Content
             it.interactPoint = MakePoint(go.transform, new Vector2(pos.x - 1.2f, groundY));
         }
 
-        static void BuildBackPortal(Transform parent, Vector2 pos, float groundY)
+        static void BuildBackPortal(Transform parent, Vector2 pos, float groundY, string targetRoom)
         {
-            var go = MakeBlock(parent, "Portal_BackToFoyer", pos, new Vector2(1.2f, 3.0f),
+            var go = MakeBlock(parent, "Portal_BackTo_" + targetRoom, pos, new Vector2(1.2f, 3.0f),
                 new Color(0.15f, 0.15f, 0.25f, 0.5f));
             var portal = go.AddComponent<ScenePortal>();
-            portal.targetRoom = Rooms.Prologue_Foyer;
+            portal.targetRoom = targetRoom;
             portal.highlightTarget = go.GetComponent<SpriteRenderer>();
-            portal.interactPoint = MakePoint(go.transform, new Vector2(pos.x + 1.5f, groundY));
+            // interactPoint 站在 Portal 内侧(portal 在右端 → 老人站左侧才触发)
+            portal.interactPoint = MakePoint(go.transform, new Vector2(pos.x - 1.5f, groundY));
         }
 
         static GameObject MakeBlock(Transform parent, string name, Vector2 pos, Vector2 size, Color color)

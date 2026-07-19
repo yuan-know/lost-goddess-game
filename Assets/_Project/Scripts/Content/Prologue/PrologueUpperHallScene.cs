@@ -90,10 +90,12 @@ namespace LostGoddess.Content
 
         static void BuildStairsPortal(Transform parent, Vector2 pos, float groundY)
         {
-            var go = MakeBlock(parent, "Portal_BackToFoyer", pos, new Vector2(1.2f, 3.0f),
+            // 策划切换图 2026-07-19:UpperHall 朝左走 = 回 UpperChamber(二楼密室),
+            //   再朝左才是 LadderChamber。不再一步跳回 Foyer。
+            var go = MakeBlock(parent, "Portal_BackToUpperChamber", pos, new Vector2(1.2f, 3.0f),
                 new Color(0.15f, 0.15f, 0.25f, 0.5f));
             var portal = go.AddComponent<ScenePortal>();
-            portal.targetRoom = Rooms.Prologue_Foyer;
+            portal.targetRoom = Rooms.Prologue_UpperChamber;
             portal.highlightTarget = go.GetComponent<SpriteRenderer>();
             portal.interactPoint = MakePoint(go.transform, new Vector2(pos.x + 1.5f, groundY));
         }

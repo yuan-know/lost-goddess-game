@@ -202,6 +202,28 @@ namespace LostGoddess
                 return;
             }
 
+            // ── 2026-07-19 策划场景切换图新增(神庙前厅左右链) ──
+            if (roomName == Rooms.Prologue_LadderChamber)
+            {
+                LostGoddess.Content.PrologueLadderChamberScene.Build();
+                return;
+            }
+            if (roomName == Rooms.Prologue_GearRoom)
+            {
+                LostGoddess.Content.PrologueGearRoomScene.Build();
+                return;
+            }
+            if (roomName == Rooms.Prologue_StatueRoom)
+            {
+                LostGoddess.Content.PrologueStatueRoomScene.Build();
+                return;
+            }
+            if (roomName == Rooms.Prologue_UpperChamber)
+            {
+                LostGoddess.Content.PrologueUpperChamberScene.Build();
+                return;
+            }
+
             // 美术已交付的真实场景:调 SceneRoomBuilder 建三层视差背景 + WalkableArea + 相机跟随;
             // 交互物暂缺(等策划)——只把老人放进去就行,看视差滚动 + 老人走场景效果。
             if (roomName == ROOM_DARK_FOREST)
@@ -312,6 +334,9 @@ namespace LostGoddess
                 "Room_" + Rooms.Prologue_Chamber3, "Room_" + Rooms.Prologue_UpperHall,
                 "Room_" + Rooms.Prologue_Chamber2, "Room_" + Rooms.Prologue_Chase,
                 "Room_" + Rooms.Chapter1_Hall,
+                // 2026-07-19 前厅左右链新增
+                "Room_" + Rooms.Prologue_LadderChamber, "Room_" + Rooms.Prologue_GearRoom,
+                "Room_" + Rooms.Prologue_StatueRoom, "Room_" + Rooms.Prologue_UpperChamber,
                 // SceneRoomBuilder 用 SceneDef.roomName 命名根节点,与 Prologue_* 逻辑房间名不同:
                 "Room_TempleGate", "Room_TempleFoyer", "Room_TempleChamber1F", "Room_UpperHall", "Room_Chamber2",
             })
