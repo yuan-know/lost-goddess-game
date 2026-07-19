@@ -13,13 +13,21 @@ using UnityEngine;
 namespace LostGoddess.Content
 {
     // ─────────────────────────────────────────────────────────────────────
-    //  Interact_Pottery —— 陶罐(打碎 → 有 hasKey=true 时掉钥匙)
+    //  Interact_Pottery —— 陶罐(全部可交互;藏钥匙的会弹出特写)
     // ─────────────────────────────────────────────────────────────────────
     public class Interact_Pottery : InteractableBase
     {
         [Tooltip("这个陶罐里是否藏了钥匙")]
         public bool hasKey;
         bool _broken;
+
+        static readonly string[] _emptyTexts = new string[]
+        {
+            "只是空罐子。",
+            "里面只有碎陶片。",
+            "什么也没找到。",
+            "罐子已经裂了,里面空空如也。"
+        };
 
         public override void OnClick()
         {
@@ -35,14 +43,47 @@ namespace LostGoddess.Content
 
             if (hasKey)
             {
-                if (!InventorySystem.Has(Items.PotteryKey))
-                    InventorySystem.Add(Items.PotteryKey);
-                DialogueSystem.ShowText("碎陶片里滚出一枚锈迹斑斑的钥匙——像是给池底那个锁孔用的。");
+                ShowKeyCloseup();
             }
             else
             {
-                DialogueSystem.ShowText("只是空罐子。");
+                int idx = Mathf.Abs(gameObject.name.GetHashCode()) % _emptyTexts.Length;
+                DialogueSystem.ShowText(_emptyTexts[idx]);
             }
+        }
+
+        void ShowKeyCloseup()
+        {
+            var sprite = Resources.Load<Sprite>("Closeups/key_reveal");
+            if (sprite == null)
+            {
+                // 特写图缺失时的兜底:直接给钥匙并提示
+                GiveKey();
+                DialogueSystem.ShowText("碎陶片里滚出一枚锈迹斑斑的钥匙——像是给池底那个锁孔用的。");
+                return;
+            }
+
+            // 运行时组装一个 UI 特写对象(用 CloseupView 弹出)
+            //  模板本身不在 Canvas 下,不会渲染;CloseupView 会实例化一份到内容层。
+            var go = new GameObject("_KeyRevealTemplate");
+            var rt = go.AddComponent<RectTransform>();
+            rt.sizeDelta = new Vector2(sprite.rect.width, sprite.rect.height);
+            var img = go.AddComponent<UnityEngine.UI.Image>();
+            img.sprite = sprite;
+            img.preserveAspect = true;
+
+            CloseupView.Open(go, () =>
+            {
+                Object.Destroy(go);
+                GiveKey();
+                DialogueSystem.ShowText("你得到了一枚锈迹斑斑的钥匙——像是给池底那个锁孔用的。");
+            });
+        }
+
+        void GiveKey()
+        {
+            if (!InventorySystem.Has(Items.PotteryKey))
+                InventorySystem.Add(Items.PotteryKey);
         }
     }
 

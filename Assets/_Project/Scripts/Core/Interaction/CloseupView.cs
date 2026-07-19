@@ -14,6 +14,7 @@ namespace LostGoddess
         static GameObject _root;      // 特写层根(带半透明背景 + 内容挂点)
         static Transform _content;    // 当前特写内容挂点
         static GameObject _currentInstance;
+        static System.Action _onClosed; // 特写关闭后的回调
 
         public static bool IsOpen { get; private set; }
 
@@ -54,7 +55,8 @@ namespace LostGoddess
         }
 
         /// <summary>按 id 从 Resources/Closeups 加载特写预制体并打开。</summary>
-        public static void Open(string closeupId)
+        /// <param name="onClosed">用户点空白关闭特写后执行的回调(可选)。</param>
+        public static void Open(string closeupId, System.Action onClosed = null)
         {
             var prefab = Resources.Load<GameObject>("Closeups/" + closeupId);
             if (prefab == null)
@@ -62,14 +64,16 @@ namespace LostGoddess
                 Debug.LogWarning($"[CloseupView] 未找到特写预制体 'Closeups/{closeupId}'。");
                 return;
             }
-            Open(prefab);
+            Open(prefab, onClosed);
         }
 
-        public static void Open(GameObject closeupPrefab)
+        /// <param name="onClosed">用户点空白关闭特写后执行的回调(可选)。</param>
+        public static void Open(GameObject closeupPrefab, System.Action onClosed = null)
         {
             EnsureRoot();
             if (IsOpen) Close();
 
+            _onClosed = onClosed;
             _root.SetActive(true);
             IsOpen = true;
 
@@ -92,6 +96,10 @@ namespace LostGoddess
 
             if (PlayerController.Instance != null)
                 PlayerController.Instance.SetControllable(true);
+
+            var cb = _onClosed;
+            _onClosed = null;
+            cb?.Invoke();
         }
     }
 }
