@@ -54,13 +54,10 @@ namespace LostGoddess.Content
             bgPixelWidth = 4250f,
             bgPixelHeight = 1200f,
             bgPPU = 100f,
-            // 目标:背景图**底边**贴相机视口底(Y=-5),画上地平线在图底往上 13%
-            //   imageBottomY = groundY - worldHeight * groundFromBottom
-            //   要 imageBottomY = -5,   worldHeight = 12,   groundFromBottom = 0.13
-            //   → groundY = -5 + 12*0.13 = -3.44
-            // 老人脚底跟着落到 -3.44,与画上地面对齐
-            groundFromBottom = 0.13f,
-            groundY = -3.44f,
+            // 2026-07-19 修正:角色骨骼/立绘锚点与脚底有约 0.25 单位偏移,统一下调 groundY
+            //   使视觉上的脚底贴合画面地面。
+            groundFromBottom = 0.109f,
+            groundY = -3.69f,               // = -5 + 12*0.109
             // 【占位阶段:三层视差全部关掉】
             //   原因:美术还没按"这一层画什么、那一层画什么"严格分工,占位期把三层
             //   全画满会导致占位物(世界固定)和 mid/far 层视差滑动不同步,视觉错位。
@@ -76,9 +73,9 @@ namespace LostGoddess.Content
             bgPixelWidth = 3400f,
             bgPixelHeight = 1200f,
             bgPPU = 100f,
-            // 同上:图底贴视口底 Y=-5,老人脚底 -3.44
-            groundFromBottom = 0.13f,
-            groundY = -3.44f,
+            // 2026-07-19 修正:统一下调 0.25 以抵消角色锚点偏移
+            groundFromBottom = 0.109f,
+            groundY = -3.69f,
             // 占位阶段视差全关(同 DarkForest 注释)
             parallaxFar = 0.00f,
             parallaxMid = 0.00f,
@@ -97,9 +94,9 @@ namespace LostGoddess.Content
             bgPixelHeight = 1200f,
             bgPPU = 100f,
             // 2026-07-19 修正:按公式统一 groundY;原 -3.44 与 0.28 不一致
-            // 2026-07-19 二修:截图显示老人仍轻微浮空于石台,再下调 0.11
-            groundFromBottom = 0.271f,      // 洗礼池石台顶约图底 27.1% 处(运行时按 P 键精校)
-            groundY = -1.75f,               // = -5 + 12*0.271
+            // 2026-07-19 二修:截图显示老人浮空于石台,统一下调并额外修正
+            groundFromBottom = 0.233f,      // 洗礼池石台顶约图底 23.3% 处
+            groundY = -2.20f,               // = -5 + 12*0.233
             parallaxFar = 0.00f,
             parallaxMid = 0.00f,
             parallaxNear = 0.00f,
@@ -120,9 +117,9 @@ namespace LostGoddess.Content
             bgPixelWidth = 3400f,
             bgPixelHeight = 1200f,
             bgPPU = 100f,
-            // 2026-07-19 修正:按公式统一 groundY
-            groundFromBottom = 0.12f,       // 实测 bg_full 地平线在图底 12% 处(运行时按 P 键校准)
-            groundY = -3.56f,               // = -5 + 12*0.12
+            // 2026-07-19 修正:按公式统一 groundY;统一下调 0.25 抵消角色锚点偏移
+            groundFromBottom = 0.099f,      // 实测 bg_full 地平线在图底 9.9% 处
+            groundY = -3.81f,               // = -5 + 12*0.099
             parallaxFar = 0.00f,
             parallaxMid = 0.00f,
             parallaxNear = 0.00f,
@@ -145,8 +142,9 @@ namespace LostGoddess.Content
             bgPixelWidth = 3400f,
             bgPixelHeight = 1200f,
             bgPPU = 100f,
-            groundFromBottom = 0.13f,
-            groundY = -3.44f,
+            // 2026-07-19 修正:统一下调 0.25 以抵消角色锚点偏移
+            groundFromBottom = 0.109f,
+            groundY = -3.69f,
             parallaxFar = 0.00f,
             parallaxMid = 0.00f,
             parallaxNear = 0.00f,
@@ -170,9 +168,9 @@ namespace LostGoddess.Content
             bgPixelWidth = 3400f,
             bgPixelHeight = 1200f,
             bgPPU = 100f,
-            groundFromBottom = 0.13f,       // 保守值:图底刚好贴相机底(orthoSize=5 时 bottomY=-5.0)
-                                            //   Foyer 图底 6% 位置是地砖反光突变行,不是真地平线 → 沿用 0.13
-            groundY = -3.44f,
+            // 2026-07-19 修正:统一下调 0.25 以抵消角色锚点偏移
+            groundFromBottom = 0.109f,      // 图底往上约 10.9% 处为 Foyer 地面
+            groundY = -3.69f,               // = -5 + 12*0.109
             parallaxFar = 0.00f,
             parallaxMid = 0.00f,
             parallaxNear = 0.00f,
@@ -193,9 +191,10 @@ namespace LostGoddess.Content
             bgPixelWidth = 3400f,           // 舞台按 3400 算(bg_far 巨图溢出,靠相机 clamp 裁掉)
             bgPixelHeight = 1200f,
             bgPPU = 100f,
-            // 2026-07-19 修正:与 StatueRoom 共用 Chamber2 美术,地面同在最下一排壁龛底(约图底 8%)
-            groundFromBottom = 0.08f,       // 实测 Chamber2/bg_full 地平线在图底 8% 处
-            groundY = -4.04f,               // = -5 + 12*0.08
+            // 2026-07-19 修正:与 StatueRoom 共用 Chamber2 美术,地面同在最下一排壁龛底
+            // 2026-07-19 二修:截图显示青年仍浮空,统一下调 0.25
+            groundFromBottom = 0.059f,      // Chamber2/bg_full 地平线在图底 5.9% 处
+            groundY = -4.29f,               // = -5 + 12*0.059
             parallaxFar = 0.00f,
             parallaxMid = 0.00f,
             parallaxNear = 0.00f,
@@ -218,8 +217,9 @@ namespace LostGoddess.Content
             bgPixelWidth = 3400f,
             bgPixelHeight = 1200f,
             bgPPU = 100f,
-            groundFromBottom = 0.10f,       // 祭台底/地面约图底 10% 处(初估值,运行时按 P 键校准)
-            groundY = -3.80f,               // = -5 + 12*0.10
+            // 2026-07-19 二修:统一下调 0.25 以抵消角色锚点偏移
+            groundFromBottom = 0.079f,      // 祭台底/地面约图底 7.9% 处
+            groundY = -4.05f,               // = -5 + 12*0.079
             parallaxFar = 0.00f,
             parallaxMid = 0.00f,
             parallaxNear = 0.00f,
@@ -239,9 +239,9 @@ namespace LostGoddess.Content
             bgPixelWidth = 3400f,
             bgPixelHeight = 1200f,
             bgPPU = 100f,
-            // 2026-07-19 修正:按公式统一 groundY
-            groundFromBottom = 0.16f,       // 实测 Chamber1 地平线在图底 16% 处(运行时按 P 键校准)
-            groundY = -3.08f,               // = -5 + 12*0.16
+            // 2026-07-19 修正:按公式统一 groundY;统一下调 0.25 抵消角色锚点偏移
+            groundFromBottom = 0.139f,      // 实测 Chamber1 地平线在图底 13.9% 处
+            groundY = -3.33f,               // = -5 + 12*0.139
             parallaxFar = 0.00f,
             parallaxMid = 0.00f,
             parallaxNear = 0.00f,
@@ -254,7 +254,7 @@ namespace LostGoddess.Content
         //  美术直接复用 Chamber2 目录(bg_full 3400×1200,里面有大型无头长袍立像 + 8 个小雕像 + 壁龛墙)
         //  2026-07-19 二修:用户截图老人踩在"最下一排壁龛顶"而非"雕像基座底" → 真地平线在图底 8%,
         //   不是原来算错的 25%(25% 是壁龛顶装饰线被梯度法误判)。
-        //   基座底在图底 8% → pct=0.08,同步把 groundY 从 -3.44 下调到 -4.04
+        //   基座底在图底 8% → pct=0.08,同步把 groundY 从 -3.44 下调到 -4.04,再下调到 -4.29
         //   (公式:groundY = -5 + 12*pct 保证图底贴相机底 -5,不露黑相机背景)
         public static readonly SceneDef StatueRoom = new SceneDef
         {
@@ -263,8 +263,9 @@ namespace LostGoddess.Content
             bgPixelWidth = 3400f,
             bgPixelHeight = 1200f,
             bgPPU = 100f,
-            groundFromBottom = 0.08f,       // 雕像基座底 ≈ 图底 8%
-            groundY = -4.04f,               // 老人脚 = 基座底,占屏幕下方约 10%
+            // 2026-07-19 三修:截图显示青年仍浮空,再统一下调 0.25 抵消角色锚点偏移
+                groundFromBottom = 0.059f,      // 雕像基座底 ≈ 图底 5.9%
+            groundY = -4.29f,               // 老人脚 = 基座底,占屏幕下方约 10%
             parallaxFar = 0.00f,
             parallaxMid = 0.00f,
             parallaxNear = 0.00f,

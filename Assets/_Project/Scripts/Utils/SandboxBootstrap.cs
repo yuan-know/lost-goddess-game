@@ -90,6 +90,10 @@ namespace LostGoddess
         // delta < 0:背景下移 → 老人显得更"浮"起
         // 单位:相对图片高度的比例(0.05 = 12*0.05 = 0.6 世界单位)
         // ParallaxLayer 只操作 .x,这里只改 .y,不冲突。
+        // 角色骨骼/立绘锚点与视觉脚底有约 0.25 单位偏移;
+        // 校准时先把背景调到"看起来贴脚",再从此值扣掉该偏移才是应写入 SceneDef 的 groundY。
+        const float SpriteFeetOffset = 0.25f;
+
         float _groundOffsetPct = 0f;
         void NudgeGround(float deltaPct)
         {
@@ -102,20 +106,26 @@ namespace LostGoddess
             }
             _groundOffsetPct += deltaPct;
 
-            var def = LostGoddess.Content.SceneRoomBuilder.LastBuiltDef;
-            float basePct = def != null ? def.groundFromBottom : 0.13f;
-            float suggested = basePct - _groundOffsetPct;
-            Flash($"地平线 {(_groundOffsetPct>=0?"+":"")}{_groundOffsetPct*100f:F0}% → 建议 groundFromBottom={suggested:F3}");
+            var (suggestedPct, suggestedGroundY) = ComputeSuggestedGround();
+            Flash($"地平线 {(_groundOffsetPct>=0?"+":"")}{_groundOffsetPct*100f:F0}% → 建议 groundFromBottom={suggestedPct:F3}");
         }
         void PrintGround()
         {
+            var (suggestedPct, suggestedGroundY) = ComputeSuggestedGround();
             var def = LostGoddess.Content.SceneRoomBuilder.LastBuiltDef;
             float basePct = def != null ? def.groundFromBottom : 0.13f;
-            float suggested = basePct - _groundOffsetPct;
-            float suggestedGroundY = -5f + 12f * suggested;
             Debug.Log($"[Sandbox] {GameState.CurrentRoom} 累计微调 {(_groundOffsetPct>=0?"+":"")}{_groundOffsetPct*100f:F0}%, " +
-                      $"当前 groundFromBottom={basePct:F3}, 建议改为 {suggested:F3} (groundY={suggestedGroundY:F2})");
-            Flash($"建议 groundFromBottom={suggested:F3} groundY={suggestedGroundY:F2}");
+                      $"当前 groundFromBottom={basePct:F3}, 建议改为 {suggestedPct:F3} (groundY={suggestedGroundY:F2},已扣 0.25 角色偏移)");
+            Flash($"建议 groundFromBottom={suggestedPct:F3} groundY={suggestedGroundY:F2}");
+        }
+        (float pct, float groundY) ComputeSuggestedGround()
+        {
+            var def = LostGoddess.Content.SceneRoomBuilder.LastBuiltDef;
+            float basePct = def != null ? def.groundFromBottom : 0.13f;
+            float rawGroundY = -5f + 12f * (basePct - _groundOffsetPct);
+            float adjustedGroundY = rawGroundY - SpriteFeetOffset;
+            float adjustedPct = (adjustedGroundY + 5f) / 12f;
+            return (adjustedPct, adjustedGroundY);
         }
 
         void SwitchRoom(string roomName)
