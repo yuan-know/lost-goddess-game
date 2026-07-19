@@ -243,6 +243,10 @@ namespace LostGoddess.Content
 
         // 【石雕室】—— Prologue_StatueRoom(前厅右 2,策划图 "方格墙 + 中央人形石雕像")
         //  美术直接复用 Chamber2 目录(bg_full 3400×1200,里面有大型无头长袍立像 + 8 个小雕像 + 壁龛墙)
+        //  2026-07-19 二修:用户截图老人踩在"最下一排壁龛顶"而非"雕像基座底" → 真地平线在图底 8%,
+        //   不是原来算错的 25%(25% 是壁龛顶装饰线被梯度法误判)。
+        //   基座底在图底 8% → pct=0.08,同步把 groundY 从 -3.44 下调到 -4.04
+        //   (公式:groundY = -5 + 12*pct 保证图底贴相机底 -5,不露黑相机背景)
         public static readonly SceneDef StatueRoom = new SceneDef
         {
             roomName = "StatueRoom",
@@ -250,12 +254,12 @@ namespace LostGoddess.Content
             bgPixelWidth = 3400f,
             bgPixelHeight = 1200f,
             bgPPU = 100f,
-            groundFromBottom = 0.25f,       // 实测 Chamber2/bg_full 地平线在图底 25% 处
-            groundY = -3.44f,
+            groundFromBottom = 0.08f,       // 雕像基座底 ≈ 图底 8%
+            groundY = -4.04f,               // 老人脚 = 基座底,占屏幕下方约 10%
             parallaxFar = 0.00f,
             parallaxMid = 0.00f,
             parallaxNear = 0.00f,
-            bgFarSprite = "bg_full",         // 用 bg_full 铺满 3400,不用 bg_far 6656 巨图
+            bgFarSprite = "bg_full",
             bgMidSprite = "",
             bgNearSprite = "",
         };
