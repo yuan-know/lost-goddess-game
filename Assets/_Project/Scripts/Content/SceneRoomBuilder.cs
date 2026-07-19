@@ -93,10 +93,10 @@ namespace LostGoddess.Content
             bgPixelWidth = 3400f,
             bgPixelHeight = 1200f,
             bgPPU = 100f,
-            // 2026-07-19 修正:按公式统一 groundY;原 -3.44 与 0.28 不一致
-            // 2026-07-19 二修:截图显示老人浮空于石台,统一下调并额外修正
-            groundFromBottom = 0.233f,      // 洗礼池石台顶约图底 23.3% 处
-            groundY = -2.20f,               // = -5 + 12*0.233
+            // 2026-07-19 三修:用户红线标出地面在最下方石砖地面,不是中央石台顶。
+            //   原 0.233 把老人放在石台上方,现降到图底约 5% 处,与 Chamber2/StatueRoom 类似。
+            groundFromBottom = 0.050f,      // 真地面 ≈ 图底 5.0% 处
+            groundY = -4.40f,               // = -5 + 12*0.050
             parallaxFar = 0.00f,
             parallaxMid = 0.00f,
             parallaxNear = 0.00f,

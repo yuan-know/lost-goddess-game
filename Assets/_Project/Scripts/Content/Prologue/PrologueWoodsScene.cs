@@ -55,7 +55,7 @@ namespace LostGoddess.Content
 
         static void BuildTempleEntrance(Transform parent)
         {
-            const float groundY = -3.44f; // 与 DarkForest.groundY 一致
+            float groundY = SceneRoomBuilder.DarkForest.groundY; // 与 DarkForest 保持一致
             const float x = 14f;          // 神庙大门所在区域(在 WalkPoint2=8 右侧)
             const float w = 6f;           // 宽大判定区,方便点击
             const float h = 6f;
