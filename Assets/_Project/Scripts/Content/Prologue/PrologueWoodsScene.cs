@@ -44,9 +44,56 @@ namespace LostGoddess.Content
             // 老人在左端出生
             PlayerBuilder.Build(Era.Old, SceneRoomBuilder.DarkForest.groundY, SpawnX);
 
+            // 神庙入口触发器:剧情结束后玩家点击此处进入 Prologue_Gate
+            //  放在场景右侧,覆盖神庙大门视觉区域,作为剧情兜底与脚本要求的"点击神庙大门进入"
+            BuildTempleEntrance(root.transform);
+
             // 挂个 director 组件在场景根,收着 Cutscene(切场景时随根一起 Destroy)
             var director = root.AddComponent<PrologueWoodsDirector>();
             director.StartCutscene();
+        }
+
+        static void BuildTempleEntrance(Transform parent)
+        {
+            const float groundY = -3.44f; // 与 DarkForest.groundY 一致
+            const float x = 14f;          // 神庙大门所在区域(在 WalkPoint2=8 右侧)
+            const float w = 6f;           // 宽大判定区,方便点击
+            const float h = 6f;
+            float centerY = groundY + h * 0.5f;
+
+            var go = new GameObject("Portal_TempleEntrance");
+            go.transform.SetParent(parent, false);
+            go.transform.position = new Vector3(x, centerY, 0f);
+
+            var sr = go.AddComponent<SpriteRenderer>();
+            sr.sprite = SolidSprite();
+            sr.color = new Color(0.9f, 0.8f, 0.4f, 0.08f); // 极淡黄,验证期可见,正式期可改 0
+            sr.sortingOrder = 60;
+            go.transform.localScale = new Vector3(w, h, 1f);
+            var col = go.AddComponent<BoxCollider2D>();
+            col.isTrigger = true;
+
+            var portal = go.AddComponent<ScenePortal>();
+            portal.targetRoom = Rooms.Prologue_Gate;
+            portal.successDialogueId = "";
+            portal.highlightTarget = sr;
+            portal.fadeTime = 0.6f;
+
+            var ip = new GameObject("interactPoint").transform;
+            ip.SetParent(go.transform, false);
+            ip.position = new Vector3(x - 2f, groundY, 0f);
+            portal.interactPoint = ip;
+        }
+
+        static Sprite _solid;
+        static Sprite SolidSprite()
+        {
+            if (_solid != null) return _solid;
+            var tex = new Texture2D(2, 2);
+            var px = new Color[] { Color.white, Color.white, Color.white, Color.white };
+            tex.SetPixels(px); tex.Apply();
+            _solid = Sprite.Create(tex, new Rect(0, 0, 2, 2), new Vector2(0.5f, 0.5f), 2f);
+            return _solid;
         }
     }
 
@@ -81,16 +128,16 @@ namespace LostGoddess.Content
                 // 老年独白 3
                 .Add(new SayStep(Dialogues.prologue_0_03))
 
-                // 等玩家点击(此刻画面停在神庙轮廓前,提示"点击进入")
-                .Add(new SayTextStep("(点击画面继续:走向神庙大门)"))
-
-                // 切场景到神庙入口(石拱门外景过场,不是内景第一幕)
+                // 剧情结束:标记已抵达神庙,把控制权交还玩家,由场景右侧的 Portal_TempleEntrance 触发换场景
+                //  这样即使 Cutscene 步行被点击干扰,玩家也能主动点击神庙入口进入,避免卡死
                 .Add(new SetFlagStep(Flags.Prologue_MetTemple, true))
-                .Add(new GoToSceneStep(Rooms.Prologue_Gate, 0.6f));
+                .Add(new SayTextStep("(走到神庙大门前,点击进入)"));
 
             _cs.OnFinished += () =>
             {
-                // GoToSceneStep 走完就换场景了,这里其实到不了
+                // 确保角色可控,玩家可以点击神庙入口 Portal
+                var pc = PlayerController.Instance;
+                if (pc != null) pc.SetControllable(true);
             };
             _cs.Play();
         }

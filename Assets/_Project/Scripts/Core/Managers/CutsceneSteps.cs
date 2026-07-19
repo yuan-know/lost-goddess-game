@@ -55,13 +55,11 @@ namespace LostGoddess
             var pc = PlayerController.Instance;
             if (pc == null) yield break;
 
-            // Cutscene 里角色是 uncontrollable 的,但 WalkTo 会直接 return;
-            // 这里临时开权、走完再关。
-            pc.SetControllable(true);
-            bool arrived = false;
-            pc.WalkTo(new Vector2(worldX, pc.transform.position.y), () => arrived = true);
-            while (!arrived) yield return null;
+            // Cutscene 里强制移动:不开启玩家控制,避免玩家点击覆盖目标导致剧情卡住。
             pc.SetControllable(false);
+            bool arrived = false;
+            pc.ForceWalkTo(new Vector2(worldX, pc.transform.position.y), () => arrived = true);
+            while (!arrived) yield return null;
         }
     }
 

@@ -61,9 +61,10 @@ namespace LostGoddess
 
         // ── 公开 API(契约 §7)──
 
-        public void WalkTo(Vector2 worldPos, Action onArrive = null)
+        /// <param name="force">为 true 时无视 _controllable 锁,用于 Cutscene 强制移动。</param>
+        public void WalkTo(Vector2 worldPos, Action onArrive = null, bool force = false)
         {
-            if (!_controllable) { onArrive?.Invoke(); return; }
+            if (!_controllable && !force) { onArrive?.Invoke(); return; }
 
             // 烟火式横版:只取 X,clamp 到可走线;Y 锁定为老人当前 Y(纯左右移动,不上下)
             float targetX = worldPos.x;
@@ -85,6 +86,12 @@ namespace LostGoddess
         {
             if (target == null) { onArrive?.Invoke(); return; }
             WalkTo((Vector2)target.position, onArrive);
+        }
+
+        /// <summary>Cutscene/剧情专用:强制角色走到目标,不受玩家控制状态影响。</summary>
+        public void ForceWalkTo(Vector2 worldPos, Action onArrive = null)
+        {
+            WalkTo(worldPos, onArrive, force: true);
         }
 
         public void StopMoving()
