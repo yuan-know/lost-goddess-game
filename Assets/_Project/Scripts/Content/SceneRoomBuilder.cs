@@ -45,6 +45,9 @@ namespace LostGoddess.Content
 
     public static class SceneRoomBuilder
     {
+        /// <summary>最近一次 Build 使用的 SceneDef，供运行时地平线校准工具读取。</summary>
+        public static SceneDef LastBuiltDef { get; private set; }
+
         public static readonly SceneDef DarkForest = new SceneDef
         {
             roomName = "DarkForest",
@@ -93,8 +96,9 @@ namespace LostGoddess.Content
             bgPixelWidth = 3400f,
             bgPixelHeight = 1200f,
             bgPPU = 100f,
-            groundFromBottom = 0.28f,       // 2026-07-19 实测图上地平线在图底 28% 处(原 0.13 导致人物浮空)
-            groundY = -3.44f,
+            // 2026-07-19 修正:按公式统一 groundY;原 -3.44 与 0.28 不一致
+            groundFromBottom = 0.28f,       // 洗礼池地面约图底 28% 处(运行时按 P 键校准)
+            groundY = -1.64f,               // = -5 + 12*0.28
             parallaxFar = 0.00f,
             parallaxMid = 0.00f,
             parallaxNear = 0.00f,
@@ -115,8 +119,9 @@ namespace LostGoddess.Content
             bgPixelWidth = 3400f,
             bgPixelHeight = 1200f,
             bgPPU = 100f,
-            groundFromBottom = 0.12f,       // 实测 bg_full 地平线在图底 12% 处
-            groundY = -3.44f,
+            // 2026-07-19 修正:按公式统一 groundY
+            groundFromBottom = 0.12f,       // 实测 bg_full 地平线在图底 12% 处(运行时按 P 键校准)
+            groundY = -3.56f,               // = -5 + 12*0.12
             parallaxFar = 0.00f,
             parallaxMid = 0.00f,
             parallaxNear = 0.00f,
@@ -187,8 +192,9 @@ namespace LostGoddess.Content
             bgPixelWidth = 3400f,           // 舞台按 3400 算(bg_far 巨图溢出,靠相机 clamp 裁掉)
             bgPixelHeight = 1200f,
             bgPPU = 100f,
-            groundFromBottom = 0.25f,       // 实测 Chamber2/bg_full 地平线在图底 25% 处
-            groundY = -3.44f,
+            // 2026-07-19 修正:与 StatueRoom 共用 Chamber2 美术,地面同在最下一排壁龛底(约图底 8%)
+            groundFromBottom = 0.08f,       // 实测 Chamber2/bg_full 地平线在图底 8% 处
+            groundY = -4.04f,               // = -5 + 12*0.08
             parallaxFar = 0.00f,
             parallaxMid = 0.00f,
             parallaxNear = 0.00f,
@@ -204,14 +210,15 @@ namespace LostGoddess.Content
         //   · bg_far.png(3400×1200)= 石墙 + 中央祭台的房间
         //   · prop_ladder.png(3400×1200)= 木梯单件(像素 bbox x∈[758,1008] → 世界 x ≈ -8.17)
         //   · 无 bg_near/bg_mid,ladder 作近景层用于视觉遮挡
+        //  2026-07-19 修正:原 0.26 使老人踩在祭台上方浮空,实际地面更靠近图底。
         public static readonly SceneDef LadderChamber = new SceneDef
         {
             roomName = "LadderChamber",
             bgPixelWidth = 3400f,
             bgPixelHeight = 1200f,
             bgPPU = 100f,
-            groundFromBottom = 0.26f,       // 实测图上地平线在图底 26% 处(祭台底 = 地面)
-            groundY = -3.44f,
+            groundFromBottom = 0.10f,       // 祭台底/地面约图底 10% 处(初估值,运行时按 P 键校准)
+            groundY = -3.80f,               // = -5 + 12*0.10
             parallaxFar = 0.00f,
             parallaxMid = 0.00f,
             parallaxNear = 0.00f,
@@ -231,8 +238,9 @@ namespace LostGoddess.Content
             bgPixelWidth = 3400f,
             bgPixelHeight = 1200f,
             bgPPU = 100f,
-            groundFromBottom = 0.16f,       // 实测 Chamber1 地平线在图底 16% 处
-            groundY = -3.44f,
+            // 2026-07-19 修正:按公式统一 groundY
+            groundFromBottom = 0.16f,       // 实测 Chamber1 地平线在图底 16% 处(运行时按 P 键校准)
+            groundY = -3.08f,               // = -5 + 12*0.16
             parallaxFar = 0.00f,
             parallaxMid = 0.00f,
             parallaxNear = 0.00f,
@@ -267,6 +275,7 @@ namespace LostGoddess.Content
         /// <summary>按定义构建场景:三层背景 + WalkableArea + 相机跟随。返回根节点。</summary>
         public static GameObject Build(SceneDef def)
         {
+            LastBuiltDef = def;
             var root = new GameObject("Room_" + def.roomName);
             float worldWidth = def.bgPixelWidth / def.bgPPU;    // 42.5 / 34.0
             float worldHeight = def.bgPixelHeight / def.bgPPU;  // 12.0
