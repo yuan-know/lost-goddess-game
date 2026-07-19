@@ -61,9 +61,10 @@ namespace LostGoddess.Content
             }
 
             // 场景中央 Portal:朝上(爬梯)= 上二楼(仅 LadderChamber)
+            //  木梯在 prop_ladder 像素 x∈[758,1008] → 世界 x≈-8.17,把爬梯触发区放在梯子处
             if (!string.IsNullOrEmpty(def.upRoom))
             {
-                BuildLadderPortal(root.transform, def.upRoom, new Vector2(0f, groundY + 2.5f), groundY);
+                BuildLadderPortal(root.transform, def.upRoom, new Vector2(-8.17f, groundY + 2.5f), groundY);
             }
 
             // Director:首帧独白 + 强制可控

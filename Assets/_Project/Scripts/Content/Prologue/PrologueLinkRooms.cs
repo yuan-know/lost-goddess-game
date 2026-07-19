@@ -19,12 +19,12 @@ namespace LostGoddess.Content
     {
         public static void Build()
         {
-            // 前厅左 2:梯子密室(向左返回陶罐间 / 向右返回前厅 / 向上爬梯到二楼密室)
+            // 前厅左 2:梯子密室(向左到陶罐间 / 向右返回神庙前厅 / 中央爬梯直达二楼回廊)
             PrologueLinkRoomBuilder.Build(new LinkRoomDef {
                 roomName  = Rooms.Prologue_LadderChamber,
-                leftRoom  = Rooms.Prologue_Chamber3,     // 朝左 → 陶罐间(策划图左 3)
+                leftRoom  = Rooms.Prologue_Chamber3,     // 朝左 → 陶罐间
                 rightRoom = Rooms.Prologue_Foyer,        // 朝右 → 返回神庙前厅
-                upRoom    = Rooms.Prologue_UpperChamber, // 中央爬梯 → 二楼密室
+                upRoom    = Rooms.Prologue_UpperHall,    // 中央木梯 → 二楼回廊(UpperHall)
                 title     = "梯子密室",
                 scene     = SceneRoomBuilder.LadderChamber,
             });
