@@ -46,9 +46,8 @@ namespace LostGoddess.Content
             //  BuildGearBox     (room.transform, new Vector2(???, groundY + ???), groundY);
             //  BuildGearsMechanism(room.transform, new Vector2(???, groundY + ???), groundY);
 
-            // ── 楼梯口 Portal(策划切换图 2026-07-19: 朝左 → 二楼密室) ──
-            //  按新 bg_full 视觉,左端明显是通往下一房间的暗区,右端是密室尽头。
-            //  暂时挂在场景左端 x=-15,让玩家能返回;真实梯子位置等策划答复再挪。
+            // ── 楼梯口 Portal(朝左 → 返回梯子密室) ──
+            //  从 LadderChamber 的木梯爬上来,原路返回。
             BuildStairsPortal(room.transform, new Vector2(-15f, groundY + 1.5f), groundY);
 
             room.AddComponent<PrologueUpperHallDirector>();
@@ -94,12 +93,11 @@ namespace LostGoddess.Content
 
         static void BuildStairsPortal(Transform parent, Vector2 pos, float groundY)
         {
-            // 策划切换图 2026-07-19:UpperHall 朝左走 = 回 UpperChamber(二楼密室),
-            //   再朝左才是 LadderChamber。不再一步跳回 Foyer。
-            var go = MakeBlock(parent, "Portal_BackToUpperChamber", pos, new Vector2(1.2f, 3.0f),
+            // UpperHall 朝左走 = 沿木梯返回 LadderChamber。
+            var go = MakeBlock(parent, "Portal_BackToLadderChamber", pos, new Vector2(1.2f, 3.0f),
                 new Color(0.15f, 0.15f, 0.25f, 0.5f));
             var portal = go.AddComponent<ScenePortal>();
-            portal.targetRoom = Rooms.Prologue_UpperChamber;
+            portal.targetRoom = Rooms.Prologue_LadderChamber;
             portal.highlightTarget = go.GetComponent<SpriteRenderer>();
             portal.interactPoint = MakePoint(go.transform, new Vector2(pos.x + 1.5f, groundY));
         }
@@ -175,7 +173,7 @@ namespace LostGoddess.Content
             if (pc != null) pc.SetControllable(false);
             var cs = gameObject.AddComponent<Cutscene>();
             cs.Add(new WaitStep(0.4f))
-              .Add(new SayTextStep("(二楼回廊——石砖回廊在前,道具位置等策划锚点。走到左边缘可返回二楼密室。)"));
+              .Add(new SayTextStep("(二楼回廊——石砖回廊在前,道具位置等策划锚点。走到左边缘可沿木梯返回梯子密室。)"));
             cs.OnFinished += () => { if (pc != null) pc.SetControllable(true); };
             cs.Play();
         }
