@@ -70,9 +70,22 @@ namespace LostGoddess
             { Dialogues.wrong_era_need_young,  "这需要一双灵活的手,或者强壮的臂膀。此刻我做不到。" },
             { Dialogues.wrong_era_need_middle, "你毛躁的双手无法完成精密的拼接。" },
             { Dialogues.wrong_era_need_old,    "你还没有那双能看穿岁月的眼睛。" },
+
+            // ── 第一章 场景旁白 ──
+            { Dialogues.ch1_hall_intro,
+              "来到了大殿,这里被林立的巨柱包围,中央残破的女神残缺的神像在阴影中伫立,透着永恒的肃穆与荒凉。" },
+            { Dialogues.ch1_dining_intro,
+              "曾经盛极一时的奢华盛宴早已散去,如今只剩下死一般的沉寂。" },
+            { Dialogues.ch1_weapons_intro,
+              "武器室里挂满了锈蚀的兵器与巨大的圆盾,粗重的锁链与机械齿轮在阴影中默默伫立。传说这里存放着上古神兵征战时使用的兵器。" },
+            { Dialogues.ch1_corridor_intro,
+              "走廊两旁,矗立着整齐划一的雕像,它们沉默地守护着古老的秘密。拱门上无数只形态各异的眼睛正如鬼魅般时刻凝视着入侵者。你可以听见鬼魂在不远处的叹息声。" },
         };
 
         static DialogueUI _ui;
+
+        /// <summary>当前是否有对话正在播放(用于全局拦截场景点击)</summary>
+        public static bool IsPlaying { get; internal set; }
 
         static void EnsureUI()
         {
@@ -89,11 +102,51 @@ namespace LostGoddess
             _ui.Play(text, onFinish);
         }
 
-        /// <summary>直接显示一段文本(不走对白表)。</summary>
+        /// <summary>显示一行文本,默认不显示表情(纯环境旁白/系统提示)</summary>
         public static void ShowText(string text, Action onFinish = null)
         {
             EnsureUI();
-            _ui.Play(text, onFinish);
+            _ui.Play(text, onFinish, showPortrait: false);
+        }
+
+        /// <summary>按 id 播放旁白/场景介绍文案,不显示人物表情特写。
+        /// 场景介绍、环境描述等非角色对话用这个。</summary>
+        public static void ShowNarration(string dialogueId, Action onFinish = null)
+        {
+            EnsureUI();
+            string text = _table.TryGetValue(dialogueId, out var t) ? t : dialogueId;
+            _ui.Play(text, onFinish, showPortrait: false);
+        }
+
+        /// <summary>显示角色内心独白(OS),带当前时代的默认表情特写</summary>
+        public static void ShowMonologue(string text, Action onFinish = null)
+        {
+            EnsureUI();
+            _ui.Play(text, onFinish, showPortrait: true);   // 用默认表情
+        }
+
+        /// <summary>显示角色对话,带指定表情。
+        /// portraitKey 例如 "kind"/"smile"/"think"/"sad" 等,会自动拼成 UI/Portraits/{era}_{key}。
+        /// 传 null/空 则用当前时代默认表情。</summary>
+        public static void ShowMonologue(string text, string portraitKey, Action onFinish = null)
+        {
+            EnsureUI();
+            _ui.Play(text, onFinish, showPortrait: true, portraitKey: portraitKey);
+        }
+
+        /// <summary>整组对话的一句:表情特写不淡出/不闪。
+        /// hidePortraitAfter=false → 本句结束不淡出表情(供下一句复用,只切 sprite);
+        /// 组末最后一句传 true 才会淡出。首句若表情未显示,会自动淡入。</summary>
+        public static void ShowMonologue(string text, string portraitKey, Action onFinish, bool hidePortraitAfter)
+        {
+            EnsureUI();
+            _ui.Play(text, onFinish, showPortrait: true, portraitKey: portraitKey, hidePortraitAfter: hidePortraitAfter);
+        }
+
+        /// <summary>强制立刻淡出表情特写(意外中断整组对话时兜底)。</summary>
+        public static void HidePortrait()
+        {
+            if (_ui != null) _ui.HidePortraitNow();
         }
     }
 
@@ -105,6 +158,12 @@ namespace LostGoddess
         Action _onFinish;
         Coroutine _routine;
 
+        // 2026-07-19 添加表情特写
+        GameObject _portraitObject;
+        Image _portraitImage;
+        CanvasGroup _portraitCG;
+        string _pendingPortraitKey;   // 2026-07-20 本次 Play 指定的表情 key(null=用默认)
+
         public static DialogueUI CreateAttached()
         {
             var go = new GameObject("~DialogueUI");
@@ -112,23 +171,27 @@ namespace LostGoddess
 
             var canvas = go.AddComponent<Canvas>();
             canvas.renderMode = RenderMode.ScreenSpaceOverlay;
-            canvas.sortingOrder = 400;
+            // 2026-07-20 sortingOrder 提到 1100,盖过 LetterboxOverlay(1000),
+            // 让对话文字显示在下方黑边区域内(黑边已经是纯黑背景,天然的字幕带)。
+            canvas.sortingOrder = 1100;
             var scaler = go.AddComponent<CanvasScaler>();
             scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
             scaler.referenceResolution = new Vector2(1920, 1080);
             go.AddComponent<GraphicRaycaster>();
 
-            // 底部半透明条:高度 160(容 3 行 34px 字)、alpha 0.45(不切画面感)
-            // 上边缘用一个 8px 高的更浅条做柔和过渡,避免"硬切"感
+            // 2026-07-20 对话条:锚定屏幕底部,高度 = 下方黑边高度(1080 * 0.2018 ≈ 218),
+            // 文字天然居中显示在黑边内;底色改成完全透明(黑边本身就是背景)。
+            // 上边缘用一个 8px 高的更浅条做柔和过渡,避免"硬切"感 —— 现在直接省了。
             var barGo = new GameObject("Bar");
             barGo.transform.SetParent(go.transform, false);
             var barImg = barGo.AddComponent<Image>();
-            barImg.color = new Color(0, 0, 0, 0.45f);
+            barImg.color = new Color(0, 0, 0, 0f);   // 透明,由 LetterboxOverlay 的黑边充当底
+            barImg.raycastTarget = false;
             var brt = barImg.rectTransform;
             brt.anchorMin = new Vector2(0, 0);
             brt.anchorMax = new Vector2(1, 0);
             brt.pivot = new Vector2(0.5f, 0);
-            brt.sizeDelta = new Vector2(0, 160);
+            brt.sizeDelta = new Vector2(0, 1080f * LetterboxOverlay.BarHeightPct);  // 与黑边等高
             brt.anchoredPosition = Vector2.zero;
 
             // 文本
@@ -150,27 +213,79 @@ namespace LostGoddess
             lrt.offsetMin = new Vector2(120, 20);
             lrt.offsetMax = new Vector2(-120, -20);
 
+            // 2026-07-20 表情特写按参考图布局:
+            //   · 位置:紧贴屏幕右下角(整个屏幕最下方,不受 letterbox 黑边影响)
+            //   · 高度:屏幕高的一半(1080/2 = 540)
+            //   · 表情原图 1000×1000 正方形,preserveAspect=true → 宽度自动=540
+            //   · 图层最前:独立子 Canvas + sortingOrder=1200,盖过对白文字(1100)/黑边(1000)/所有UI
+            var portraitGo = new GameObject("Portrait");
+            portraitGo.transform.SetParent(go.transform, false);
+            // 独立 Canvas 提升 sortingOrder(需要 RectTransform,new GO 已自带)
+            var portraitCanvas = portraitGo.AddComponent<Canvas>();
+            portraitCanvas.overrideSorting = true;
+            portraitCanvas.sortingOrder = 1200;   // 最前
+            var portraitImg = portraitGo.AddComponent<Image>();
+            portraitImg.preserveAspect = true;
+            portraitImg.raycastTarget = false;
+            var prt = portraitImg.rectTransform;
+            prt.anchorMin = new Vector2(1f, 0f);  // 右下角锚点
+            prt.anchorMax = new Vector2(1f, 0f);
+            prt.pivot = new Vector2(1f, 0f);
+            prt.anchoredPosition = new Vector2(0f, 0f);   // 紧贴屏幕右下角,无边距
+            prt.sizeDelta = new Vector2(540, 540);        // 高=屏幕高一半(参考 1080),宽等比=540
+            var portraitCG = portraitGo.AddComponent<CanvasGroup>();
+            portraitCG.alpha = 0f;
+
             var ui = go.AddComponent<DialogueUI>();
             ui._label = label;
             ui._cg = go.AddComponent<CanvasGroup>();
             ui._cg.alpha = 0f;
             ui._cg.blocksRaycasts = false;
+            ui._portraitObject = portraitGo;
+            ui._portraitImage = portraitImg;
+            ui._portraitCG = portraitCG;
             return ui;
         }
 
-        public void Play(string text, Action onFinish)
+        public void Play(string text, Action onFinish, bool showPortrait = true, string portraitKey = null, bool hidePortraitAfter = true)
         {
             if (_routine != null) StopCoroutine(_routine);
             _onFinish = onFinish;
             _label.text = text;
-            _routine = StartCoroutine(Run());
+            _pendingPortraitKey = portraitKey;
+            _routine = StartCoroutine(Run(showPortrait, hidePortraitAfter));
         }
 
-        IEnumerator Run()
+        /// <summary>立刻淡出表情特写(整组中断兜底)。</summary>
+        public void HidePortraitNow()
         {
-            // 淡入 0.25s
-            _cg.blocksRaycasts = true;
-            yield return FadeAlpha(0f, 1f, 0.25f);
+            if (_portraitCG != null && _portraitCG.alpha > 0f)
+                StartCoroutine(FadePortrait(_portraitCG.alpha, 0f, 0.2f));
+        }
+
+        IEnumerator Run(bool showPortrait, bool hidePortraitAfter)
+        {
+            DialogueSystem.IsPlaying = true;
+
+            // 加载并显示表情特写:只切 sprite,不重复淡入淡出(避免整组对话中的闪烁)
+            if (showPortrait)
+            {
+                LoadPortrait();
+                // 首次显示(alpha≈0)才淡入,否则保持已显示状态,直接换 sprite
+                // 如果表情已经显示（alpha > 0.01），不管有没有换 sprite 都不重新淡入，避免闪烁
+                if (_portraitCG.alpha < 0.01f && _portraitImage.sprite != null)
+                {
+                    StartCoroutine(FadePortrait(0f, 1f, 0.3f));
+                }
+            }
+
+            // 如果字幕已经完全显示（alpha ≈ 1），不需要重新淡入
+            // 只有首次显示才淡入 —— 整组连续对话中间只换文字不淡入淡出，彻底避免闪烁
+            if (_cg.alpha < 0.99f)
+            {
+                _cg.blocksRaycasts = true;
+                yield return FadeAlpha(0f, 1f, 0.25f);
+            }
 
             // 最短保底显示时长
             float minShow = 0.4f;
@@ -180,14 +295,105 @@ namespace LostGoddess
             // 等玩家点击继续
             while (!Input.GetMouseButtonDown(0)) yield return null;
 
-            // 淡出 0.2s
-            yield return FadeAlpha(1f, 0f, 0.2f);
-            _cg.blocksRaycasts = false;
+            // 只有最后一句 (hidePortraitAfter=true) 才淡出字幕和表情
+            // 中间句 (hidePortraitAfter=false) 不淡出字幕，直接结束让下一句换文字
+            bool fadeDoneAlpha = false;
+            bool fadeDonePortrait = false;
+
+            if (hidePortraitAfter)
+            {
+                // 最后一句：淡出字幕 + (需要则淡出表情)
+                _cg.blocksRaycasts = false;
+                if (showPortrait && _portraitImage.sprite != null)
+                {
+                    // 同时启动两个淡出，都完成再继续
+                    StartCoroutine(WaitAndFlag(FadeAlpha(1f, 0f, 0.2f), () => fadeDoneAlpha = true));
+                    StartCoroutine(WaitAndFlag(FadePortrait(1f, 0f, 0.2f), () => fadeDonePortrait = true));
+                    while (!fadeDoneAlpha || !fadeDonePortrait) yield return null;
+                }
+                else
+                {
+                    // 只淡出字幕
+                    yield return FadeAlpha(1f, 0f, 0.2f);
+                }
+            }
+            // else → 中间句，不淡出字幕，保持显示，让下一句直接换文字
 
             var cb = _onFinish;
             _onFinish = null;
             _routine = null;
+            DialogueSystem.IsPlaying = false;
             cb?.Invoke();
+        }
+
+        IEnumerator WaitAndFlag(IEnumerator coroutine, Action onDone)
+        {
+            yield return coroutine;
+            onDone();
+        }
+
+        void LoadPortrait()
+        {
+            // 根据当前时代加载对应表情
+            string portraitPath = GetPortraitPath();
+            if (string.IsNullOrEmpty(portraitPath))
+            {
+                Debug.LogWarning("[DialogueUI] 未找到当前时代的表情资源");
+                return;
+            }
+
+            var sprite = Resources.Load<Sprite>(portraitPath);
+            if (sprite == null)
+            {
+                // 尝试从Texture2D加载
+                var tex = Resources.Load<Texture2D>(portraitPath);
+                if (tex != null)
+                {
+                    sprite = Sprite.Create(tex, new Rect(0, 0, tex.width, tex.height), new Vector2(0.5f, 0.5f));
+                    Debug.Log($"[DialogueUI] 从Texture2D加载表情: {portraitPath}");
+                }
+            }
+
+            // 如果 sprite 没变化，不需要重新赋值，避免视觉闪烁
+            if (_portraitImage.sprite != sprite)
+                _portraitImage.sprite = sprite;
+        }
+
+        string GetPortraitPath()
+        {
+            // 2026-07-20 支持临时指定表情 key(每句对话可以不同)
+            var era = GameState.CurrentEra;
+            string prefix;
+            switch (era)
+            {
+                case Era.Old:    prefix = "old"; break;
+                case Era.Middle: prefix = "middle"; break;
+                case Era.Young:  prefix = "young"; break;
+                default: return null;
+            }
+            // 显式指定 key → 拼成 UI/Portraits/{prefix}_{key}
+            if (!string.IsNullOrEmpty(_pendingPortraitKey))
+                return $"UI/Portraits/{prefix}_{_pendingPortraitKey}";
+            // 未指定 → 用当前时代的默认表情
+            switch (era)
+            {
+                case Era.Old:    return "UI/Portraits/old_kind";
+                case Era.Middle: return "UI/Portraits/middle_think";
+                case Era.Young:  return "UI/Portraits/young_think";
+            }
+            return null;
+        }
+
+        IEnumerator FadePortrait(float from, float to, float dur)
+        {
+            float t = 0f;
+            while (t < dur)
+            {
+                t += Time.deltaTime;
+                _portraitCG.alpha = Mathf.Lerp(from, to, Mathf.Clamp01(t / dur));
+                yield return null;
+            }
+            _portraitCG.alpha = to;
         }
 
         IEnumerator FadeAlpha(float from, float to, float dur)

@@ -85,8 +85,8 @@ namespace LostGoddess.Content
         // 【神庙一楼密室】—— Chamber3 洗礼池场景专用美术
         //  美术:Scenes/TempleChamber1F/{bg_far, prop_pottery, bg_full}
         //   · bg_far.png(3400×1200)= 洗礼池全景背景
-        //   · prop_pottery.png(3400×1200)= 陶罐层(全画布位置,与背景对齐)
-        //  共 2 层美术:bg_far 作远景 / prop_pottery 作前景 near / mid 空跳过
+        //   · prop_pottery.png(3400×1200)= 陶罐层(完整摆好的陶罐场景图，作为前景层显示)
+        //  2026-07-22 修正:prop_pottery作为近景层显示，sortingOrder=50(在背景之上，人物29-41之上)
         public static readonly SceneDef TempleChamber1F = new SceneDef
         {
             roomName = "TempleChamber1F",
@@ -102,7 +102,7 @@ namespace LostGoddess.Content
             parallaxNear = 0.00f,
             bgFarSprite = "bg_far",
             bgMidSprite = "",                // 无中层
-            bgNearSprite = "prop_pottery",   // 陶罐当近景层
+            bgNearSprite = "prop_pottery",   // 陶罐作为近景层，恢复显示美术原图
         };
 
         // 【前厅二楼坍塌的回廊】—— UpperHall 铁笼齿轮箱场景专用美术
@@ -205,27 +205,68 @@ namespace LostGoddess.Content
 
         // ── 2026-07-19 策划场景切换图新增 3 张真实美术接入 ──
 
+        // 【二楼回廊】—— Prologue_UpperHall(2026-07-24 从占位换成真实美术)
+        //  美术:Resources/Scenes/UpperCorridor/{bg_full, bg_far, bg_near}(用户"一楼门廊"资源)
+        //   · 图 5950×1200:场景比其他房间更长,靠相机 clamp 自动平移(视口宽不变,只是可走范围更长)
+        //   · 三层结构和 UpperHall 类似(bg_full=远景铺满 / bg_near=前景剪影),沿用同一 groundY 公式
+        public static readonly SceneDef UpperCorridor = new SceneDef
+        {
+            roomName = "UpperCorridor",
+            bgPixelWidth = 5950f,           // 用户 png "一楼门廊全" 尺寸
+            bgPixelHeight = 1200f,
+            bgPPU = 100f,
+            groundFromBottom = 0.099f,      // 与 UpperHall 一致,先按公式来,美术差异实机再调
+            groundY = -3.81f,               // = -6 + 12 * 0.099 = -4.812... 保留和 UpperHall 一致的 -3.81
+            parallaxFar = 0.00f,
+            parallaxMid = 0.00f,
+            parallaxNear = 0.00f,
+            bgFarSprite = "bg_full",        // 5950×1200 全景当远景铺满
+            bgMidSprite = "",
+            bgNearSprite = "bg_near",       // 前景剪影
+        };
+
+        // 【女神像密室】—— Prologue_GoddessChamber(2026-07-24 二楼回廊右端接的新密室)
+        //  美术:Resources/Scenes/GoddessChamber/{bg_full, bg_far, bg_near}(用户"密室2"资源)
+        //   · bg_full = 3400×1200 全景铺底 / bg_near = 3400×1200 前景剪影 / bg_far = 6656×2304(备用,暂不使用)
+        //   · 三层结构和 UpperHall 一致
+        // 2026-07-25 用户要求调低人物站位:groundY 从 -3.81 下调到 -4.11
+        public static readonly SceneDef GoddessChamber = new SceneDef
+        {
+            roomName = "GoddessChamber",
+            bgPixelWidth = 3400f,
+            bgPixelHeight = 1200f,
+            bgPPU = 100f,
+            groundFromBottom = 0.074f,   // 2026-07-25 从 0.099 下调,人物站更低
+            groundY = -4.11f,             // 2026-07-25 从 -3.81 下调 0.3
+            parallaxFar = 0.00f,
+            parallaxMid = 0.00f,
+            parallaxNear = 0.00f,
+            bgFarSprite = "bg_full",       // 3400×1200 全景当远景铺满
+            bgMidSprite = "",
+            bgNearSprite = "bg_near",      // 前景剪影
+        };
+
         // 【梯子密室】—— Prologue_LadderChamber(前厅左 2,策划图"朝左走回到梯子密室")
         //  美术:Scenes/LadderChamber/{bg_far, bg_full, prop_ladder}
         //   · bg_far.png(3400×1200)= 石墙 + 中央祭台的房间
         //   · prop_ladder.png(3400×1200)= 木梯单件(像素 bbox x∈[758,1008] → 世界 x ≈ -8.17)
         //   · 无 bg_near/bg_mid,ladder 作近景层用于视觉遮挡
-        //  2026-07-19 修正:原 0.26 使老人踩在祭台上方浮空,实际地面更靠近图底。
+        //  2026-07-22 修正:下调 groundY，让人物站在更低的位置，不浮空
         public static readonly SceneDef LadderChamber = new SceneDef
         {
             roomName = "LadderChamber",
             bgPixelWidth = 3400f,
             bgPixelHeight = 1200f,
             bgPPU = 100f,
-            // 2026-07-19 二修:统一下调 0.25 以抵消角色锚点偏移
-            groundFromBottom = 0.079f,      // 祭台底/地面约图底 7.9% 处
-            groundY = -4.05f,               // = -5 + 12*0.079
+            // 2026-07-22 三修:下调 groundY，让人物脚底更贴近地面
+            groundFromBottom = 0.042f,      // 下调到图底 4.2% 处
+            groundY = -4.50f,               // = -5 + 12*0.042，人物站在更低位置
             parallaxFar = 0.00f,
             parallaxMid = 0.00f,
             parallaxNear = 0.00f,
             bgFarSprite = "bg_far",
             bgMidSprite = "",
-            bgNearSprite = "prop_ladder",   // 木梯当近景剪影层
+            bgNearSprite = "prop_ladder",   // 木梯当近景剪影层，sortingOrder=60
         };
 
         // 【齿轮骨骸间】—— Prologue_GearRoom(前厅右 1,策划图"以神庙前厅为中心 朝右走所切换的密室"第 1 间)
@@ -248,6 +289,27 @@ namespace LostGoddess.Content
             bgFarSprite = "bg_full",         // 全景当远景铺满
             bgMidSprite = "",
             bgNearSprite = "",               // bg_near 前景暂不接(骨骸剪影可能挡老人)
+        };
+
+        // 【残骸间】—— Prologue_Chamber1(2026-07-24 女神像密室右端接的新密室)
+        //  美术复用 Chamber1 资源目录(与 GearRoom 视觉相同,但拓扑上独立房间,由 SceneDef.roomName
+        //   区分,DestroyRoomObjects 也用 roomName 找根节点。齿轮骨骸间 = 前厅右链,残骸间 = GC 右链)。
+        //   groundFromBottom 沿用 0.139(同一背景图,同一地平线)。
+        public static readonly SceneDef Chamber1 = new SceneDef
+        {
+            roomName = "Chamber1",
+            resourceFolderOverride = "Chamber1",
+            bgPixelWidth = 3400f,
+            bgPixelHeight = 1200f,
+            bgPPU = 100f,
+            groundFromBottom = 0.139f,
+            groundY = -3.33f,
+            parallaxFar = 0.00f,
+            parallaxMid = 0.00f,
+            parallaxNear = 0.00f,
+            bgFarSprite = "bg_full",
+            bgMidSprite = "",
+            bgNearSprite = "",
         };
 
         // 【石雕室】—— Prologue_StatueRoom(前厅右 2,策划图 "方格墙 + 中央人形石雕像")
@@ -274,6 +336,76 @@ namespace LostGoddess.Content
             bgNearSprite = "",
         };
 
+        // ── 第一章 场景 ──
+
+        /// <summary>【大殿】—— Chapter1_Hall(主线起点,4500×1200 全景)</summary>
+        public static readonly SceneDef MainHall = new SceneDef
+        {
+            roomName = "MainHall",
+            bgPixelWidth = 4500f,
+            bgPixelHeight = 1200f,
+            bgPPU = 100f,
+            groundFromBottom = 0.07f,       // TODO: 用户实测后微调
+            groundY = -4.08f,
+            parallaxFar = 0.00f,
+            parallaxMid = 0.00f,
+            parallaxNear = 0.00f,
+            bgFarSprite = "bg_full",
+            bgMidSprite = "",
+            bgNearSprite = "",
+        };
+
+        /// <summary>【餐厅】—— Chapter1_DiningHall(3400×1200 全景)</summary>
+        public static readonly SceneDef DiningHall = new SceneDef
+        {
+            roomName = "DiningHall",
+            bgPixelWidth = 3400f,
+            bgPixelHeight = 1200f,
+            bgPPU = 100f,
+            groundFromBottom = 0.07f,       // TODO: 用户实测后微调
+            groundY = -4.08f,
+            parallaxFar = 0.00f,
+            parallaxMid = 0.00f,
+            parallaxNear = 0.00f,
+            bgFarSprite = "bg_full",
+            bgMidSprite = "",
+            bgNearSprite = "bg_near",       // 餐厅有前景
+        };
+
+        /// <summary>【武器室】—— Chapter1_WeaponsRoom(3400×1200 全景)</summary>
+        public static readonly SceneDef WeaponsRoom = new SceneDef
+        {
+            roomName = "WeaponsRoom",
+            bgPixelWidth = 3400f,
+            bgPixelHeight = 1200f,
+            bgPPU = 100f,
+            groundFromBottom = 0.07f,       // TODO: 用户实测后微调
+            groundY = -4.08f,
+            parallaxFar = 0.00f,
+            parallaxMid = 0.00f,
+            parallaxNear = 0.00f,
+            bgFarSprite = "bg_full",
+            bgMidSprite = "",
+            bgNearSprite = "bg_near",       // 武器室有前景
+        };
+
+        /// <summary>【怨灵追逐长廊】—— Chapter1_ChaseCorridor(3400×1200 全景,睁眼/闭眼两版)</summary>
+        public static readonly SceneDef ChaseCorridor = new SceneDef
+        {
+            roomName = "ChaseCorridor",
+            bgPixelWidth = 3400f,
+            bgPixelHeight = 1200f,
+            bgPPU = 100f,
+            groundFromBottom = 0.07f,       // TODO: 用户实测后微调
+            groundY = -4.08f,
+            parallaxFar = 0.00f,
+            parallaxMid = 0.00f,
+            parallaxNear = 0.00f,
+            bgFarSprite = "bg_full",
+            bgMidSprite = "",
+            bgNearSprite = "",
+        };
+
         /// <summary>按定义构建场景:三层背景 + WalkableArea + 相机跟随。返回根节点。</summary>
         public static GameObject Build(SceneDef def)
         {
@@ -283,25 +415,38 @@ namespace LostGoddess.Content
             float worldHeight = def.bgPixelHeight / def.bgPPU;  // 12.0
             float halfW = worldWidth * 0.5f;
 
-            // 图底 Y(BottomCenter 锚点下,SpriteRenderer 的 transform.y 就是图底 Y)
-            // 我们要画上地平线落在 def.groundY:
-            //   image.bottomY = def.groundY - worldHeight * def.groundFromBottom
-            // 已在 SceneDef 里调好参数使 imageBottomY = -5(贴相机视口底),
-            //   → 底部不再露出灰底,BottomExtender 已废除。
-            float imageBottomY = def.groundY - worldHeight * def.groundFromBottom;
+            // 2026-07-21 三修:LetterboxOverlay 已按 图宽:图高=34:12 精调 barPct=0.1863,
+            //   同时 SandboxBootstrap 把 orthoSize 设为 6 → 相机 rect 内世界高 = 12(= 图高),
+            //   世界宽 = 12 × 34/12 = 34(= 图宽)。图**原尺寸**完整落进中间条带,不需要任何压缩。
+            //   要让图完整装下 → 图必须垂直居中在相机中心:图底 y=-6,图顶 y=+6(pivot=Center 时中心=0)。
+            //   地面新 groundY = 图底 + 图高 × groundFromBottom = -6 + 12 × gfb,
+            //     写回 def.groundY 让所有交互物/角色摆位跟随。
+            float imageBottomY = -6f;                           // 硬编:相机 orthoSize=6 → 图底 = -6
+            float newGroundY = imageBottomY + worldHeight * def.groundFromBottom;
+            def.groundY = newGroundY;
+            // 图 pivot=Center → sprite.transform.position.y = 图中心 = 图底 + 图高/2 = 0
+            float imageCenterY = 0f;
+            float fitY = 1f;   // 保留变量供 BuildLayer 使用,但一律为 1(原图不缩)
 
-            // 三层背景(排序:远最靠后 / 中间层 / 近层是"半透明前景遮挡")
-            //   bg_near sortingOrder=60 恢复"在老人之前"(前景遮挡感),
-            //   但把 alpha 降到 0.55 → 老人被前景剪影"薄薄挡住"而不是完全吞掉,
-            //   同时前景剪影的形体依然清晰(黑影层次感)。等美术出小型前景元素
-            //   (柱子/草丛)再单独用 alpha=1 摆真前景遮挡。
+            // 三层背景(排序:远最靠后 / 中间层 / 近层是"完全不透明的前景遮挡")
+            //   bg_near sortingOrder=60,alpha=1.0 → 完全遮挡角色(参考图里的树枝剪影效果)。
+            //   2026-07-20 按参考图要求把前景改回不透明,树枝/柱子等能完全挡住角色。
+            //   2026-07-22 特殊处理：梯子密室梯子sortingOrder=15不遮人物；陶罐间陶罐sortingOrder=50在人物之上
             //   若 def 里指定了 bgXxxSprite,用指定文件名代替默认 bg_far/mid/near。
             string farName  = string.IsNullOrEmpty(def.bgFarSprite)  ? "bg_far"  : def.bgFarSprite;
             string midName  = string.IsNullOrEmpty(def.bgMidSprite)  ? "bg_mid"  : def.bgMidSprite;
             string nearName = string.IsNullOrEmpty(def.bgNearSprite) ? "bg_near" : def.bgNearSprite;
-            BuildLayer(root.transform, def, farName,  imageBottomY, def.parallaxFar,  sortingOrder: -30, alpha: 1.0f);
-            BuildLayer(root.transform, def, midName,  imageBottomY, def.parallaxMid,  sortingOrder: -20, alpha: 1.0f);
-            BuildLayer(root.transform, def, nearName, imageBottomY, def.parallaxNear, sortingOrder:  60, alpha: 0.55f);
+
+            // 根据场景类型设置近景层sortingOrder
+            int nearOrder = 60;  // 默认60，完全遮挡角色
+            if (def.roomName == "LadderChamber" && nearName == "prop_ladder")
+                nearOrder = 15;  // 梯子在人物之下
+            else if (def.roomName == "TempleChamber1F" && nearName == "prop_pottery")
+                nearOrder = 50;  // 陶罐在人物之上
+
+            BuildLayer(root.transform, def, farName,  imageCenterY, def.parallaxFar,  sortingOrder: -30, alpha: 1.0f, fitY: fitY);
+            BuildLayer(root.transform, def, midName,  imageCenterY, def.parallaxMid,  sortingOrder: -20, alpha: 1.0f, fitY: fitY);
+            BuildLayer(root.transform, def, nearName, imageCenterY, def.parallaxNear, sortingOrder: nearOrder, alpha: 1.0f, fitY: fitY);
 
             // 可走区:X 边界按背景宽度(相机跟随时,人物走到边缘停下,不出背景)
             // 注意:老人不能走到贴边,预留 padding。
@@ -333,7 +478,7 @@ namespace LostGoddess.Content
             return root;
         }
 
-        static void BuildLayer(Transform parent, SceneDef def, string spriteName, float bottomY, float factor, int sortingOrder, float alpha = 1f)
+        static void BuildLayer(Transform parent, SceneDef def, string spriteName, float centerY, float factor, int sortingOrder, float alpha = 1f, float fitY = 1f)
         {
             // 空名字 = 显式跳过这一层(不 warn),用于只有 1~2 层美术的场景
             if (string.IsNullOrEmpty(spriteName)) return;
@@ -347,11 +492,19 @@ namespace LostGoddess.Content
             }
             var go = new GameObject(spriteName);
             go.transform.SetParent(parent, false);
-            go.transform.position = new Vector3(0f, bottomY, 0f);   // 图底 Y
             var sr = go.AddComponent<SpriteRenderer>();
             sr.sprite = sp;
             sr.sortingOrder = sortingOrder;
             if (alpha < 0.999f) sr.color = new Color(1f, 1f, 1f, alpha);
+
+            // 2026-07-21 【关键修】不再假设 sprite pivot 是 Center 或 BottomCenter。
+            //   sr.sprite.bounds.center = pivot 在世界的偏移(pivot=Center → (0,0);pivot=BottomCenter → (0, +halfH))
+            //   要让"图中心"落在 centerY,transform.y 必须等于 centerY - bounds.center.y × fitY
+            //   fitY=1 时:transform.y = centerY - bounds.center.y
+            float pivotOffsetY = sp.bounds.center.y;   // 世界单位:sprite 局部坐标下"图中心相对 pivot 的 y 偏移"
+            go.transform.position = new Vector3(0f, centerY - pivotOffsetY * fitY, 0f);
+            go.transform.localScale = new Vector3(1f, fitY, 1f);
+
             var px = go.AddComponent<ParallaxLayer>();
             px.factor = factor;
         }

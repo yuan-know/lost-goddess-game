@@ -1,19 +1,14 @@
 // ============================================================================
-//  Chapter1HallScene.cs —— 序幕之后【第一章 · 神庙大殿】(占位)
+//  Chapter1HallScene.cs —— 第一章 · 神庙大殿
 //
-//  剧情:老人被剧情杀 → 觉醒 → 落地大殿。这是**主线起点**,但主线内容(第一章)
-//  还没开发,当前只作为"序幕落幕、玩家能看到自己在一个新地方"的占位。
+//  剧情:第四幕剧情杀后觉醒 → 落地大殿。这是主线第一章的起点。
+//  结构:大殿是中心枢纽,左接餐厅/武器/长廊,目前只有向右一条线。
 //
-//  设计:
-//    · 背景先用 DarkForest 视差占位(觉醒后未名之地的暗调氛围;等美术给"神庙大厅"专用图再切)
-//    · 老人(当前 Era)落在场景中央
-//    · 首帧强制清一次 FadeOverlayColored(第四幕黑幕单例,防止残留)
-//    · 一句独白 "……这里是哪里?"
-//    · 提示:P/L 打印/输出状态。之后主线内容开发,这个 Director 就替换掉。
-//
-//  ⚠ 关键作用:第四幕 GoToScene(Chapter1_Hall) 若找不到该房间,SceneLoader
-//    会 LogWarning 什么都不建,加上 FadeOverlayColored 黑幕未清,玩家看到永久黑屏。
-//    本文件是"最小可玩落地",保证剧情杀之后还能继续。
+//  功能:
+//    · 大殿背景(4500×1200)
+//    · 角色左侧出生朝右(从追踪长廊回来时从右侧出生朝左)
+//    · 右边界传送 → 餐厅
+//    · 首帧文案:大殿介绍
 // ============================================================================
 
 using System.Collections;
@@ -23,38 +18,110 @@ namespace LostGoddess.Content
 {
     public static class Chapter1HallScene
     {
-        public const float SpawnX = 0f;
+        // 左右出生点(距中心)
+        const float SpawnX_Left = -18f;
+        const float SpawnX_Right = 18f;
 
         public static void Build()
         {
-            // 场景背景:先用 DarkForest 视差占位(觉醒后的黑森林氛围;等美术给"神庙大厅"专用图再切)
-            //   TempleFoyer 已被序幕第一幕/第四幕占用,不能给主线大殿用
-            var room = SceneRoomBuilder.Build(SceneRoomBuilder.DarkForest);
+            var room = SceneRoomBuilder.Build(SceneRoomBuilder.MainHall);
             room.name = "Room_" + Rooms.Chapter1_Hall;
-            float groundY = SceneRoomBuilder.DarkForest.groundY;
+            float groundY = SceneRoomBuilder.MainHall.groundY;
 
-            PlayerBuilder.Build(GameState.CurrentEra, groundY, SpawnX);
+            // 根据进入方向决定出生点
+            float spawnX;
+            bool faceRight;
+            if (SceneLoader.EnterDirection == "right")
+            {
+                spawnX = SpawnX_Right;
+                faceRight = false;
+            }
+            else // 默认从左侧进入
+            {
+                spawnX = SpawnX_Left;
+                faceRight = true;
+            }
+
+            var player = PlayerBuilder.Build(GameState.CurrentEra, groundY, spawnX, yOffsetOverride: PlayerBuilder.GetChapter1YOffset(GameState.CurrentEra));
+            if (player != null)
+            {
+                var pc = player.GetComponent<PlayerController>();
+                if (pc != null)
+                {
+                    pc.spriteFacesRight = false;  // 立绘默认朝左
+                    var s = player.transform.localScale;
+                    s.x = Mathf.Abs(s.x) * (faceRight ? -1f : 1f);  // 朝右时scale.x为负
+                    player.transform.localScale = s;
+                }
+            }
+
+            // 右边界传送 → 餐厅
+            BuildRightPortal(room.transform, SceneRoomBuilder.MainHall);
 
             room.AddComponent<Chapter1HallDirector>();
         }
+
+        static void BuildRightPortal(Transform parent, SceneDef scene)
+        {
+            float halfW = scene.bgPixelWidth / scene.bgPPU * 0.5f;
+            float portalX = halfW - 0.6f;
+            float groundY = scene.groundY;
+
+            const float w = 2.0f, h = 5.5f;
+            float centerY = groundY + h * 0.5f;
+
+            var go = new GameObject("Portal_Right_DiningHall");
+            go.transform.SetParent(parent, false);
+            go.transform.position = new Vector3(portalX, centerY, 0f);
+
+            var sr = go.AddComponent<SpriteRenderer>();
+            sr.sprite = PortalSolidSprite();
+            sr.color = new Color(1f, 1f, 1f, 0f);
+            sr.sortingOrder = 70;
+            go.transform.localScale = new Vector3(w, h, 1f);
+
+            var col = go.AddComponent<BoxCollider2D>();
+            col.isTrigger = true;
+
+            var portal = go.AddComponent<ScenePortal>();
+            portal.targetRoom = Rooms.Chapter1_DiningHall;
+            portal.highlightTarget = sr;
+            portal.fadeTime = 0.6f;
+            portal.triggerOnEnter = true;
+            portal.enterDirection = "left";
+
+            var ip = new GameObject("interactPoint").transform;
+            ip.SetParent(go.transform, false);
+            ip.position = new Vector3(portalX - 1.5f, groundY, 0f);
+            portal.interactPoint = ip;
+        }
+
+        static Sprite _portalSolid;
+        static Sprite PortalSolidSprite()
+        {
+            if (_portalSolid != null) return _portalSolid;
+            var tex = new Texture2D(2, 2);
+            var px = new Color[] { Color.white, Color.white, Color.white, Color.white };
+            tex.SetPixels(px); tex.Apply();
+            _portalSolid = Sprite.Create(tex, new Rect(0, 0, 2, 2), new Vector2(0.5f, 0.5f), 2f);
+            return _portalSolid;
+        }
     }
 
-    /// <summary>Chapter1_Hall 首帧 Director:强制清黑幕 + 一句独白。</summary>
+    /// <summary>大殿首帧 Director:播介绍文案,隐藏 QuestPrompt。</summary>
     public class Chapter1HallDirector : MonoBehaviour
     {
         void Start()
         {
-            // 双重保险:主动清一次 FadeOverlayColored(第四幕死亡黑幕单例遗留)
-            //  即使前一场景 Cutscene 没走完 FadeToClear,这里也把它拉回透明
-            var overlay = FadeOverlayColored.Get();
-            StartCoroutine(overlay.FadeToClear(0.4f));
+            // 进入主线后隐藏"回到神庙前厅"的指引
+            QuestPromptManager.Hide();
 
-            // 保证角色可控(以防 Cutscene 遗留了 SetControllable(false))
+            // 保证角色可控
             var pc = PlayerController.Instance;
             if (pc != null) pc.SetControllable(true);
 
-            // 首帧独白(只播一次)
-            const string kFlag = "chapter1_hall_entered";
+            // 首帧介绍文案(只播一次)
+            const string kFlag = "chapter1_hall_intro_done";
             if (GameState.GetFlag(kFlag)) return;
             GameState.SetFlag(kFlag, true);
 
@@ -63,13 +130,9 @@ namespace LostGoddess.Content
 
         IEnumerator PlayIntro()
         {
-            yield return new WaitForSeconds(0.8f);
+            yield return new WaitForSeconds(0.5f);
             bool done = false;
-            DialogueSystem.ShowText("……这里是哪里?我不是……死了吗?", () => done = true);
-            while (!done) yield return null;
-
-            done = false;
-            DialogueSystem.ShowText("(主线第一章占位。序幕已完结,下一步开发主线内容。)", () => done = true);
+            DialogueSystem.ShowNarration(Dialogues.ch1_hall_intro, () => done = true);
             while (!done) yield return null;
         }
     }

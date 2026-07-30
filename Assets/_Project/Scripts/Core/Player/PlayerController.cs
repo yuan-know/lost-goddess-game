@@ -51,12 +51,97 @@ namespace LostGoddess
                 _walkHash = Animator.StringToHash(walkParam);
         }
 
+        void Start()
+        {
+            // 确保初始状态同步到 Animator：_moving 初始是 false，
+            // 如果 Animator Controller 默认 isWalking = true，
+            // 没有这一步会导致一直播行走动画即使人物不动。
+            SetMoving(_moving);
+        }
+
         void OnDestroy() { if (Instance == this) Instance = null; }
 
         void Update()
         {
             if (_moving) MoveStep();
             UpdateSorting();
+
+            // W 键循环切换已解锁形态
+            if (_controllable && Input.GetKeyDown(KeyCode.W))
+            {
+                TrySwitchEra();
+            }
+        }
+
+        /// <summary>尝试按 W 键切换到下一个已解锁形态</summary>
+        void TrySwitchEra()
+        {
+            // 收集所有已解锁的 Era
+            var unlockedEras = new System.Collections.Generic.List<Era>();
+            foreach (Era era in System.Enum.GetValues(typeof(Era)))
+            {
+                if (GameState.IsEraUnlocked(era))
+                    unlockedEras.Add(era);
+            }
+
+            // 少于 2 个解锁 → 还没通过剧情解释切换功能，不响应
+            if (unlockedEras.Count < 2)
+                return;
+
+            // 找到当前 Era 在列表中的索引
+            Era current = GameState.CurrentEra;
+            int index = unlockedEras.IndexOf(current);
+            if (index < 0) index = 0;
+
+            // 取下一个（循环）
+            int nextIndex = (index + 1) % unlockedEras.Count;
+            Era nextEra = unlockedEras[nextIndex];
+
+            // 闪白切换，PlayerBuilder 会自动重建角色
+            var overlay = FadeOverlayColored.Get();
+            StartCoroutine(DoSwitchEra(nextEra, overlay));
+        }
+
+        System.Collections.IEnumerator DoSwitchEra(Era nextEra, FadeOverlayColored overlay)
+        {
+            // 锁定控制，防止切换过程中误操作
+            SetControllable(false);
+
+            // 闪白
+            yield return overlay.FadeToColor(Color.white, 0.25f);
+
+            Debug.Log("[PlayerController.DoSwitchEra] 闪白完成，准备切换形态");
+
+            // 关键：在销毁Player之前，先让overlay开始执行淡出
+            overlay.StartCoroutine(FadeOutAfterSwitch(overlay, nextEra));
+
+            Debug.Log("[PlayerController.DoSwitchEra] 已启动淡出协程");
+
+            // 等待一帧确保协程开始运行
+            yield return null;
+
+            Debug.Log("[PlayerController.DoSwitchEra] 协程已提交，DoSwitchEra结束");
+        }
+
+        // 独立的静态协程，在overlay上运行，不依赖PlayerController
+        static System.Collections.IEnumerator FadeOutAfterSwitch(FadeOverlayColored overlay, Era nextEra)
+        {
+            Debug.Log($"[FadeOutAfterSwitch] 开始执行，目标形态={nextEra}");
+
+            // 切换形态
+            GameState.SetEra(nextEra);
+
+            Debug.Log("[FadeOutAfterSwitch] SetEra完成，等待0.1秒");
+
+            // 等待新Player创建完成
+            yield return new WaitForSeconds(0.1f);
+
+            Debug.Log("[FadeOutAfterSwitch] 开始淡出");
+
+            // 淡出
+            yield return overlay.FadeToClear(0.4f);
+
+            Debug.Log("[FadeOutAfterSwitch] 淡出完成");
         }
 
         // ── 公开 API(契约 §7)──
@@ -105,6 +190,9 @@ namespace LostGoddess
             _controllable = on;
             if (!on) SetMoving(false);
         }
+
+        /// <summary>是否可控(2026-07-20 供 PlayerTalkPrompt 等临时锁场景保存/恢复状态)。</summary>
+        public bool IsControllable() => _controllable;
 
         /// <summary>把角色瞬移到某点(进房间时定位到出生点用)。</summary>
         public void Teleport(Vector2 worldPos)

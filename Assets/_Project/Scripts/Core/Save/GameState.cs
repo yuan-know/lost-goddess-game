@@ -50,6 +50,12 @@ namespace LostGoddess
                 OnItemsChanged?.Invoke();
         }
 
+        /// <summary>获取所有拥有的道具列表（用于背包UI显示）。</summary>
+        public static System.Collections.Generic.List<string> GetAllItems()
+        {
+            return new System.Collections.Generic.List<string>(_data.items);
+        }
+
         // ── 时代/形态(序幕内可剧情驱动切多次)──
         public static Era CurrentEra
         {

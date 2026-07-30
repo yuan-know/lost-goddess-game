@@ -46,6 +46,8 @@ namespace LostGoddess
         public const string Gear2         = "gear_2";         // 齿轮 2(策划 7.15 稿,常量先埋)
         public const string LightProjector = "light_projector"; // 光幕投影仪(中年组合出)
         public const string HexWrench     = "hex_wrench";     // 六角扳手:主线第二阶段场景 1 密室(序幕不用)
+        public const string Wrench        = "wrench";         // 铸铁扳手:残骸间地上拾取(可转动齿轮/螺栓/机关)
+        public const string Backpack      = "backpack";       // 老人在神庙入口捡到的旧背包:开启背包 UI
     }
 
     /// <summary>房间/场景名。命名:章前缀_序号_英文名(P=Prologue,O=Old,M=Middle,Y=Young)。</summary>
@@ -66,18 +68,23 @@ namespace LostGoddess
         public const string Prologue_Chamber1    = "Prologue_Chamber1";     // 密室 1:铁撬棍拾取
         public const string Prologue_Chamber2    = "Prologue_Chamber2";     // 密室 2:棺材切中年
         public const string Prologue_Chamber3    = "Prologue_Chamber3";     // 密室 3:陶罐钥匙切青年
-        public const string Prologue_UpperHall   = "Prologue_UpperHall";    // 第二幕 二楼回廊(铁笼齿轮箱)
+        public const string Prologue_UpperHall   = "Prologue_UpperHall";    // 二楼回廊(暂用占位,美术待导入)
         public const string Prologue_Chase       = "Prologue_Chase";        // 第四幕 黑雾追击剧情杀
 
         // ── 2026-07-19 策划场景切换图新增(神庙前厅左右链) ──
         // 前厅左链:Foyer ↔ LadderChamber(左2,梯子密室) ↔ Chamber3(左3,陶罐间)
         // 前厅右链:Foyer ↔ GearRoom(右1,齿轮骨骸间) ↔ StatueRoom(右2,石雕室)
-        // 二楼链 :LadderChamber↑UpperChamber(二楼密室) ↔ UpperHall(二楼连廊)
+        // 二楼链 :LadderChamber↑UpperChamber(二楼密室,真实美术) ↔ UpperHall(二楼回廊,暂用占位)
         public const string Prologue_LadderChamber = "Prologue_LadderChamber"; // 前厅左 2:梯子密室(木梯+石台+石门)
         public const string Prologue_GearRoom      = "Prologue_GearRoom";      // 前厅右 1:齿轮骨骸间
         public const string Prologue_StatueRoom    = "Prologue_StatueRoom";    // 前厅右 2:方格墙+人形石雕像
-        public const string Prologue_UpperChamber  = "Prologue_UpperChamber";  // 梯子密室爬上来的落地(过场,朝右→二楼连廊)
-        public const string Chapter1_Hall        = "Chapter1_Hall";         // 序幕结束落地(主线起点)
+        public const string Prologue_UpperChamber  = "Prologue_UpperChamber";  // 二楼密室(真实美术,原命名错误为二楼回廊)
+        // 2026-07-24 二楼回廊右端接的新密室(真实美术 GoddessChamber,原"密室2")
+        public const string Prologue_GoddessChamber = "Prologue_GoddessChamber"; // 女神像密室
+        public const string Chapter1_Hall          = "Chapter1_Hall";          // 序幕结束落地(主线起点 大殿)
+        public const string Chapter1_DiningHall    = "Chapter1_DiningHall";    // 第一章 餐厅
+        public const string Chapter1_WeaponsRoom   = "Chapter1_WeaponsRoom";   // 第一章 武器室
+        public const string Chapter1_ChaseCorridor = "Chapter1_ChaseCorridor"; // 第一章 怨灵追逐长廊
     }
 
     /// <summary>对白/旁白 id。命名:prologue_&lt;幕&gt;_&lt;序&gt;。</summary>
@@ -132,6 +139,12 @@ namespace LostGoddess
         public const string wrong_era_need_young  = "wrong_era_need_young";   // 需要青年:"这需要一双灵活的手/强壮的臂膀"
         public const string wrong_era_need_middle = "wrong_era_need_middle";  // 需要中年:"你毛躁的双手无法完成精密的拼接"
         public const string wrong_era_need_old    = "wrong_era_need_old";     // 需要老年:"你还没有那双能看穿岁月的眼睛"
+
+        // ── 第一章 场景旁白 ──
+        public const string ch1_hall_intro     = "ch1_hall_intro";     // 大殿:"来到了大殿……"
+        public const string ch1_dining_intro   = "ch1_dining_intro";   // 餐厅:"曾经盛极一时的奢华盛宴……"
+        public const string ch1_weapons_intro  = "ch1_weapons_intro";  // 武器室:"武器室里挂满了锈蚀的兵器……"
+        public const string ch1_corridor_intro = "ch1_corridor_intro"; // 长廊:"走廊两旁,矗立着整齐划一的雕像……"
     }
 
     /// <summary>音效/音乐 clip 名(对应 Audio 文件夹资源名)。</summary>

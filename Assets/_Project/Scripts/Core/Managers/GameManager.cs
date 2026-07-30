@@ -33,6 +33,9 @@ namespace LostGoddess
             SceneLoader.Init(this);
             AudioManager.Init(this);
 
+            // 初始化背包UI（2026-07-19）
+            InventoryUI.CreateAttached();
+
             if (autoLoadOnStart && SaveSystem.HasSave())
                 SaveSystem.Load();
             else

@@ -52,7 +52,8 @@ namespace LostGoddess.Content
             go.transform.position = pos;
             var sr = go.AddComponent<SpriteRenderer>();
             sr.sprite = SolidSprite();
-            sr.color = color;
+            // 2026-07-19 打包Demo：占位方块设为透明
+            sr.color = new Color(color.r, color.g, color.b, 0f);
             sr.sortingOrder = 15;
             go.transform.localScale = new Vector3(size.x, size.y, 1f);
             var col = go.AddComponent<BoxCollider2D>();

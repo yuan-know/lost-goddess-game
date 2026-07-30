@@ -25,7 +25,8 @@ namespace LostGoddess
         const string ROOM_DARK_FOREST = "DarkForest";
         const string ROOM_TEMPLE_ENTRY = "TempleEntry";
 
-        Text _hud;
+        // 2026-07-19 打包Demo：移除调试HUD
+        // Text _hud;
 
         void Start()
         {
@@ -36,36 +37,22 @@ namespace LostGoddess
             SceneLoader.ProceduralRoomBuilder = BuildRoomProcedural;
 
             BuildCamera();
+
+            // 2026-07-20 电影级信箱式黑边(严格复刻策划参考图 840×570 中的 840×341 画面比例)
+            LetterboxOverlay.Ensure();
+
+            // 2026-07-19 自动启动序幕：直接进入荒山野道场景
+            GameState.CurrentRoom = Rooms.Prologue_Woods;
+            GameState.CurrentEra = Era.Old;  // 老年形态开始
+
             BuildRoomContent(GameState.CurrentRoom);
             BuildHud();
         }
 
         void Update()
         {
-            // 存/读快捷键(验证用)
-            if (Input.GetKeyDown(KeyCode.F5)) { SaveSystem.Save(); Flash("已保存 (F5)"); }
-            if (Input.GetKeyDown(KeyCode.F9))
-            {
-                if (SaveSystem.Load()) { RebuildAfterLoad(); Flash("已读取 (F9)"); }
-                else Flash("无存档");
-            }
-            // 三形态切换(验证用):按 1/2/3 换 青年/中年/老年 立绘并原地重建
-            if (Input.GetKeyDown(KeyCode.Alpha1)) SwitchEra(Era.Young);
-            if (Input.GetKeyDown(KeyCode.Alpha2)) SwitchEra(Era.Middle);
-            if (Input.GetKeyDown(KeyCode.Alpha3)) SwitchEra(Era.Old);
-            // 场景切换(验证用):4=沙盒占位房、5=黑暗森林、6=神庙入口
-            if (Input.GetKeyDown(KeyCode.Alpha4)) SwitchRoom("Sandbox");
-            if (Input.GetKeyDown(KeyCode.Alpha5)) SwitchRoom(ROOM_DARK_FOREST);
-            if (Input.GetKeyDown(KeyCode.Alpha6)) SwitchRoom(ROOM_TEMPLE_ENTRY);
-            // 序幕真戏入口:7=第 0 幕荒山野道(Cutscene)  8=第一幕神庙门厅(占位)
-            //   9=密室 3(陶罐钥匙→切青年)  0=二楼回廊(铁笼齿轮箱)
-            //   -=密室 2(棺材→切中年)  ==第四幕黑雾追击 Cutscene
-            if (Input.GetKeyDown(KeyCode.Alpha7)) SwitchRoom(Rooms.Prologue_Woods);
-            if (Input.GetKeyDown(KeyCode.Alpha8)) SwitchRoom(Rooms.Prologue_Foyer);
-            if (Input.GetKeyDown(KeyCode.Alpha9)) SwitchRoom(Rooms.Prologue_Chamber3);
-            if (Input.GetKeyDown(KeyCode.Alpha0)) SwitchRoom(Rooms.Prologue_UpperHall);
-            if (Input.GetKeyDown(KeyCode.Minus)) SwitchRoom(Rooms.Prologue_Chamber2);
-            if (Input.GetKeyDown(KeyCode.Equals)) SwitchRoom(Rooms.Prologue_Chase);
+            // 2026-07-19 打包Demo：移除所有调试快捷键
+            // 仅保留救急键R
 
             // 救急键 R:强制解锁角色 + 停掉所有 Cutscene(卡死救援)
             if (Input.GetKeyDown(KeyCode.R))
@@ -75,14 +62,6 @@ namespace LostGoddess
                 foreach (var cs in FindObjectsOfType<Cutscene>()) cs.Stop();
                 Flash("已强制解锁角色 (R)");
             }
-
-            // 当前场景地平线微调(验证用):[ 抬背景/相当于降低地面 5% ] 降背景/抬高地面
-            // 按住 Shift 是细调 1%,不按是粗调 5%
-            float step = Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift) ? 0.01f : 0.05f;
-            if (Input.GetKeyDown(KeyCode.LeftBracket))  NudgeGround(+step);
-            if (Input.GetKeyDown(KeyCode.RightBracket)) NudgeGround(-step);
-            if (Input.GetKeyDown(KeyCode.P)) PrintGround();
-            RefreshHud();
         }
 
         // 运行时上下平移背景三层,微调"画上地面 vs 老人脚底"对齐
@@ -159,7 +138,7 @@ namespace LostGoddess
                 go.tag = "MainCamera";
                 var newCam = go.AddComponent<Camera>();
                 newCam.orthographic = true;           // 固定单屏
-                newCam.orthographicSize = 5f;
+                newCam.orthographicSize = 6f;         // 2026-07-21:orthoSize=6 让 12 单位图完整落进中间条带
                 newCam.transform.position = new Vector3(0, 0, -10);
                 go.AddComponent<ClickInputManager>();
             }
@@ -170,9 +149,20 @@ namespace LostGoddess
             //  · 深色背景(与序幕氛围一致)
             var cam = Camera.main;
             cam.orthographic = true;
-            cam.orthographicSize = 5f;
+            cam.orthographicSize = 6f;   // 2026-07-21:与新黑边比联动,让 12 单位场景完整落中间条带
             cam.clearFlags = CameraClearFlags.SolidColor;
             cam.backgroundColor = new Color(0.06f, 0.06f, 0.08f);  // 近黑,不喧宾夺主
+
+            // 2026-07-20 相机 viewport 限定在中间条带内,让完整场景在中间区域呈现,
+            // 不再被 LetterboxOverlay 盖住顶部/底部内容。
+            //   · rect.y = 下方黑边高度比例 (0.2018)
+            //   · rect.height = 中间画面比例 (1 - 2*0.2018 = 0.5964)
+            //   · 相机 aspect 会自动变宽(约 2.98:1 in 1080p),完整渲染进中间条带
+            {
+                float barPct = LetterboxOverlay.BarHeightPct;
+                cam.rect = new Rect(0f, barPct, 1f, 1f - 2f * barPct);
+            }
+
             if (cam.GetComponent<ClickInputManager>() == null)
                 cam.gameObject.AddComponent<ClickInputManager>();
         }
@@ -201,9 +191,16 @@ namespace LostGoddess
                 LostGoddess.Content.PrologueChamber3Scene.Build();
                 return;
             }
+            if (roomName == Rooms.Prologue_UpperChamber)
+            {
+                // 二楼密室:用真实美术(原二楼回廊的美术资源,名字错了而已)
+                LostGoddess.Content.PrologueUpperHallScene.Build();
+                return;
+            }
             if (roomName == Rooms.Prologue_UpperHall)
             {
-                LostGoddess.Content.PrologueUpperHallScene.Build();
+                // 二楼回廊:2026-07-24 换真实美术 UpperCorridor(5950×1200,更长)
+                LostGoddess.Content.PrologueUpperChamberScene.Build();
                 return;
             }
             if (roomName == Rooms.Prologue_Chamber2)
@@ -219,6 +216,21 @@ namespace LostGoddess
             if (roomName == Rooms.Chapter1_Hall)
             {
                 LostGoddess.Content.Chapter1HallScene.Build();
+                return;
+            }
+            if (roomName == Rooms.Chapter1_DiningHall)
+            {
+                LostGoddess.Content.DiningHallScene.Build();
+                return;
+            }
+            if (roomName == Rooms.Chapter1_WeaponsRoom)
+            {
+                LostGoddess.Content.WeaponsRoomScene.Build();
+                return;
+            }
+            if (roomName == Rooms.Chapter1_ChaseCorridor)
+            {
+                LostGoddess.Content.ChaseCorridorScene.Build();
                 return;
             }
 
@@ -241,6 +253,20 @@ namespace LostGoddess
             if (roomName == Rooms.Prologue_UpperChamber)
             {
                 LostGoddess.Content.PrologueUpperChamberScene.Build();
+                return;
+            }
+
+            // 2026-07-24 二楼回廊右端 → 女神像密室
+            if (roomName == Rooms.Prologue_GoddessChamber)
+            {
+                LostGoddess.Content.PrologueGoddessChamberScene.Build();
+                return;
+            }
+
+            // 2026-07-24 女神像密室右端 → 残骸间(复用 Chamber1 资源目录,拓扑独立房间)
+            if (roomName == Rooms.Prologue_Chamber1)
+            {
+                LostGoddess.Content.PrologueChamber1Scene.Build();
                 return;
             }
 
@@ -327,7 +353,11 @@ namespace LostGoddess
                        ?? GameObject.Find("Room_GearRoom")
                        ?? GameObject.Find("Room_StatueRoom")
                        ?? GameObject.Find("Room_TempleEntry")
-                       ?? GameObject.Find("Room_DarkForest");
+                       ?? GameObject.Find("Room_DarkForest")
+                       ?? GameObject.Find("Room_MainHall")
+                       ?? GameObject.Find("Room_DiningHall")
+                       ?? GameObject.Find("Room_WeaponsRoom")
+                       ?? GameObject.Find("Room_ChaseCorridor");
             if (newRoot != null)
             {
                 var wa = newRoot.GetComponentInChildren<WalkableArea>();
@@ -343,8 +373,8 @@ namespace LostGoddess
 
         void DestroyRoomObjects()
         {
-            // 占位房 4 件套
-            foreach (var n in new[] { "WalkableArea", "Player", "Lamp_提灯", "Door_门" })
+            // 占位房 4 件套 + 头顶感叹号(与 Player 同生同死)
+            foreach (var n in new[] { "WalkableArea", "Player", "Lamp_提灯", "Door_门", "~PlayerTalkPrompt" })
             {
                 var g = GameObject.Find(n);
                 if (g != null) Destroy(g);
@@ -357,12 +387,20 @@ namespace LostGoddess
                 "Room_" + Rooms.Prologue_Chamber3, "Room_" + Rooms.Prologue_UpperHall,
                 "Room_" + Rooms.Prologue_Chamber2, "Room_" + Rooms.Prologue_Chase,
                 "Room_" + Rooms.Chapter1_Hall,
+                "Room_" + Rooms.Chapter1_DiningHall,
+                "Room_" + Rooms.Chapter1_WeaponsRoom,
+                "Room_" + Rooms.Chapter1_ChaseCorridor,
                 // 2026-07-19 前厅左右链新增
                 "Room_" + Rooms.Prologue_LadderChamber, "Room_" + Rooms.Prologue_GearRoom,
                 "Room_" + Rooms.Prologue_StatueRoom, "Room_" + Rooms.Prologue_UpperChamber,
+                // 2026-07-24 二楼回廊右端接的女神像密室
+                "Room_" + Rooms.Prologue_GoddessChamber,
+                // 2026-07-24 女神像密室右端接的残骸间
+                "Room_" + Rooms.Prologue_Chamber1,
                 // SceneRoomBuilder 用 SceneDef.roomName 命名根节点,与 Prologue_* 逻辑房间名不同:
                 "Room_TempleGate", "Room_TempleFoyer", "Room_TempleChamber1F", "Room_UpperHall", "Room_Chamber2",
                 "Room_LadderChamber", "Room_GearRoom", "Room_StatueRoom",   // 2026-07-19 前厅左右链新增
+                "Room_MainHall", "Room_DiningHall", "Room_WeaponsRoom", "Room_ChaseCorridor",  // 第一章 SceneDef.roomName 命名
             })
             {
                 var g = GameObject.Find(n);
@@ -380,66 +418,21 @@ namespace LostGoddess
         // ── HUD(验证信息)──
         void BuildHud()
         {
-            var canvasGo = new GameObject("SandboxHUD");
-            var canvas = canvasGo.AddComponent<Canvas>();
-            canvas.renderMode = RenderMode.ScreenSpaceOverlay;
-            canvas.sortingOrder = 100;
-            canvasGo.AddComponent<CanvasScaler>();
-            canvasGo.AddComponent<GraphicRaycaster>();
-
-            var txtGo = new GameObject("Info");
-            txtGo.transform.SetParent(canvasGo.transform, false);
-            _hud = txtGo.AddComponent<Text>();
-            _hud.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
-            _hud.fontSize = 20;
-            _hud.color = Color.white;
-            var rt = _hud.rectTransform;
-            rt.anchorMin = new Vector2(0, 1); rt.anchorMax = new Vector2(0, 1);
-            rt.pivot = new Vector2(0, 1);
-            rt.anchoredPosition = new Vector2(16, -16);
-            rt.sizeDelta = new Vector2(900, 300);
+            // 2026-07-19 打包Demo：移除左上角调试信息
+            // 调试HUD已禁用
         }
-
-        float _flashUntil;
-        string _flashMsg = "";
-        void Flash(string msg) { _flashMsg = msg; _flashUntil = Time.time + 2f; }
 
         void RefreshHud()
         {
-            if (_hud == null) return;
-            string flash = (Time.time < _flashUntil) ? $"\n<{_flashMsg}>" : "";
+            // 2026-07-19 打包Demo：移除左上角调试信息
+            // 调试HUD已禁用
+        }
 
-            // 诊断:老人状态 + 相机 + 可走线
-            var pc = PlayerController.Instance;
-            string playerDiag = "no Player";
-            if (pc != null)
-            {
-                var pos = pc.transform.position;
-                // 通过反射拿私有字段 _controllable / _moving,方便排查卡死
-                var t = pc.GetType();
-                var ctrlF = t.GetField("_controllable", System.Reflection.BindingFlags.NonPublic|System.Reflection.BindingFlags.Instance);
-                var moveF = t.GetField("_moving",       System.Reflection.BindingFlags.NonPublic|System.Reflection.BindingFlags.Instance);
-                bool ctrl = ctrlF != null && (bool)ctrlF.GetValue(pc);
-                bool mv   = moveF != null && (bool)moveF.GetValue(pc);
-                playerDiag = $"Player x={pos.x:F1} y={pos.y:F1}  ctrl={ctrl}  moving={mv}";
-            }
-            var cam = Camera.main;
-            string camDiag = (cam != null) ? $"Cam x={cam.transform.position.x:F1}" : "no Cam";
-            var wa = WalkableArea.Current;
-            string waDiag = (wa != null) ? $"Walk[{wa.minX:F1},{wa.maxX:F1}] gY={wa.GroundY:F1}" : "no WalkableArea";
-
-            _hud.text =
-                $"[失落的女神 · 系统层验证沙盒]\n" +
-                $"点空地=角色走过去  点物件=走近触发\n" +
-                $"F5 存档 / F9 读档   1/2/3 切换青年/中年/老年\n" +
-                $"4=占位沙盒  5=黑暗森林  6=神庙入口  7=序幕荒山  8=序幕门厅  9=密室3  0=二楼回廊\n" +
-                $"-=密室2  ==第四幕Chase   R=救急:强制解锁角色\n" +
-                $"[ / ] 微调地平线(±5%,按 Shift ±1%)   P 打印建议值\n" +
-                $"房间: {GameState.CurrentRoom}   时代: {GameState.CurrentEra}\n" +
-                $"{playerDiag}\n" +
-                $"{camDiag}   {waDiag}\n" +
-                $"持有提灯: {InventorySystem.Has(Items.item_lamp)}   门已开: {GameState.GetFlag(Flags.demo_door_unlocked)}" +
-                flash;
+        // 2026-07-19 打包Demo：禁用闪烁提示
+        // float _flashUntil;
+        // string _flashMsg = "";
+        void Flash(string msg) {
+            // 禁用闪烁提示
         }
 
         // ── 工具 ──
@@ -449,7 +442,8 @@ namespace LostGoddess
             go.transform.position = pos;
             var sr = go.AddComponent<SpriteRenderer>();
             sr.sprite = SolidSprite();
-            sr.color = color;
+            // 2026-07-19 打包Demo：占位方块设为透明
+            sr.color = new Color(color.r, color.g, color.b, 0f);
             go.transform.localScale = new Vector3(size.x, size.y, 1);
             var col = go.AddComponent<BoxCollider2D>();
             col.isTrigger = true;

@@ -36,8 +36,20 @@ namespace LostGoddess
             // 特写打开时,世界点击交给特写层,这里不处理行走/交互
             if (CloseupView.IsOpen) { ClearHover(); return; }
 
+            // 对话播放时,全屏点击只用于推进对话,不触发世界交互/移动
+            if (DialogueSystem.IsPlaying) { ClearHover(); return; }
+
             Vector2 worldPoint = cam.ScreenToWorldPoint(Input.mousePosition);
-            var hit = Physics2D.OverlapPoint(worldPoint, interactableMask);
+            // Physics2D.OverlapPoint 默认 ignoreTriggers = true → 忽略所有 isTrigger = true 的碰撞体
+            // 我们所有交互物都是 trigger，所以必须设置 contactFilter.useTriggers = true 才能检测到！
+            ContactFilter2D contactFilter = new ContactFilter2D();
+            contactFilter.layerMask = interactableMask;
+            contactFilter.useTriggers = true;
+            contactFilter.useLayerMask = true;
+
+            var hits = new Collider2D[1];
+            int count = Physics2D.OverlapPoint(worldPoint, contactFilter, hits);
+            var hit = count > 0 ? hits[0] : null;
             InteractableBase target = hit != null ? hit.GetComponentInParent<InteractableBase>() : null;
 
             UpdateHover(target);
