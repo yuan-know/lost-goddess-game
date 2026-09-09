@@ -215,8 +215,10 @@ namespace LostGoddess.Content
             bgPixelWidth = 5950f,           // 用户 png "一楼门廊全" 尺寸
             bgPixelHeight = 1200f,
             bgPPU = 100f,
-            groundFromBottom = 0.099f,      // 与 UpperHall 一致,先按公式来,美术差异实机再调
-            groundY = -3.81f,               // = -6 + 12 * 0.099 = -4.812... 保留和 UpperHall 一致的 -3.81
+            // 2026-09-09 站位实机调试:统一下调 0.5 单位。
+            // ⚠ groundY=-6+12*gfb,gfb 减小才是下调(距图底更近)。0.099-0.0417=0.057。
+            groundFromBottom = 0.057f,      // 原 0.099(从未实测,沿用 UpperHall 估值)
+            groundY = -5.31f,               // 实际 Build 重算 = -6+12*0.057 = -5.316
             parallaxFar = 0.00f,
             parallaxMid = 0.00f,
             parallaxNear = 0.00f,
@@ -236,8 +238,9 @@ namespace LostGoddess.Content
             bgPixelWidth = 3400f,
             bgPixelHeight = 1200f,
             bgPPU = 100f,
-            groundFromBottom = 0.074f,   // 2026-07-25 从 0.099 下调,人物站更低
-            groundY = -4.11f,             // 2026-07-25 从 -3.81 下调 0.3
+            // 2026-09-09 站位实机调试:统一下调 0.5 单位(gfb 减小才是下调)。
+            groundFromBottom = 0.032f,   // 原 0.074
+            groundY = -5.61f,            // 实际 Build 重算 = -6+12*0.032 = -5.616
             parallaxFar = 0.00f,
             parallaxMid = 0.00f,
             parallaxNear = 0.00f,
@@ -294,7 +297,9 @@ namespace LostGoddess.Content
         // 【残骸间】—— Prologue_Chamber1(2026-07-24 女神像密室右端接的新密室)
         //  美术复用 Chamber1 资源目录(与 GearRoom 视觉相同,但拓扑上独立房间,由 SceneDef.roomName
         //   区分,DestroyRoomObjects 也用 roomName 找根节点。齿轮骨骸间 = 前厅右链,残骸间 = GC 右链)。
-        //   groundFromBottom 沿用 0.139(同一背景图,同一地平线)。
+        //   groundFromBottom 原沿用 0.139。
+        // 2026-09-09 站位实机调试(残骸间):统一下调 0.5 单位(gfb 减小才是下调)。
+        //   注意:GearRoom(前厅右链,同美术)不在用户反馈列表,保持 0.139 不动。
         public static readonly SceneDef Chamber1 = new SceneDef
         {
             roomName = "Chamber1",
@@ -302,8 +307,8 @@ namespace LostGoddess.Content
             bgPixelWidth = 3400f,
             bgPixelHeight = 1200f,
             bgPPU = 100f,
-            groundFromBottom = 0.139f,
-            groundY = -3.33f,
+            groundFromBottom = 0.097f,      // 原 0.139
+            groundY = -4.83f,               // 实际 Build 重算 = -6+12*0.097 = -4.836
             parallaxFar = 0.00f,
             parallaxMid = 0.00f,
             parallaxNear = 0.00f,
@@ -345,8 +350,9 @@ namespace LostGoddess.Content
             bgPixelWidth = 4500f,
             bgPixelHeight = 1200f,
             bgPPU = 100f,
-            groundFromBottom = 0.07f,       // TODO: 用户实测后微调
-            groundY = -4.08f,
+            // 2026-09-09 站位实机调试:统一下调 0.5 单位(gfb 0.07→0.028,减小才是下调)
+            groundFromBottom = 0.028f,
+            groundY = -5.66f,               // 实际 Build 重算 = -6+12*0.028 = -5.664
             parallaxFar = 0.00f,
             parallaxMid = 0.00f,
             parallaxNear = 0.00f,
@@ -362,8 +368,9 @@ namespace LostGoddess.Content
             bgPixelWidth = 3400f,
             bgPixelHeight = 1200f,
             bgPPU = 100f,
-            groundFromBottom = 0.07f,       // TODO: 用户实测后微调
-            groundY = -4.08f,
+            // 2026-09-09 站位实机调试:统一下调 0.5 单位(gfb 0.07→0.028,减小才是下调)
+            groundFromBottom = 0.028f,
+            groundY = -5.66f,               // 实际 Build 重算 = -6+12*0.028 = -5.664
             parallaxFar = 0.00f,
             parallaxMid = 0.00f,
             parallaxNear = 0.00f,
@@ -379,8 +386,9 @@ namespace LostGoddess.Content
             bgPixelWidth = 3400f,
             bgPixelHeight = 1200f,
             bgPPU = 100f,
-            groundFromBottom = 0.07f,       // TODO: 用户实测后微调
-            groundY = -4.08f,
+            // 2026-09-09 站位实机调试:统一下调 0.5 单位(gfb 0.07→0.028,减小才是下调)
+            groundFromBottom = 0.028f,
+            groundY = -5.66f,               // 实际 Build 重算 = -6+12*0.028 = -5.664
             parallaxFar = 0.00f,
             parallaxMid = 0.00f,
             parallaxNear = 0.00f,
@@ -396,8 +404,10 @@ namespace LostGoddess.Content
             bgPixelWidth = 3400f,
             bgPixelHeight = 1200f,
             bgPPU = 100f,
-            groundFromBottom = 0.07f,       // TODO: 用户实测后微调
-            groundY = -4.08f,
+            // 2026-09-09 站位实机调试:统一下调 0.5 单位(gfb 0.07→0.028,减小才是下调),
+            //   千眼回廊用户要求再低"一点点" → 追加 -0.1,gfb=0.020,groundY=-5.76
+            groundFromBottom = 0.020f,
+            groundY = -5.76f,               // 实际 Build 重算 = -6+12*0.020 = -5.76
             parallaxFar = 0.00f,
             parallaxMid = 0.00f,
             parallaxNear = 0.00f,
