@@ -46,6 +46,25 @@ namespace LostGoddess
         Vector3 _localBase;
         float _phase;
         bool _isTalking;
+        bool _isAI;   // 玩家是否为 AI 逐帧版(根节点上直接有 SpriteRenderer)
+
+        // AI 逐帧版:锚点在脚底,三形态【实际视觉身高】(世界单位)。
+        //   2026-09-09 帧 prefab 在 PlayerBuilder 按 FrameScaleFor 缩放后,视觉身高已对齐骨骼版
+        //   (= 帧原始身高 × 缩放):青年 5.04×.949=4.785 / 中年 4.69×1.041=4.88 / 老年 4.55×1.099=5.0。
+        //   感叹号中心 = 脚底 + 身高 + 头顶间距。
+        const float kHeadMargin = 0.7f;   // 头顶到感叹号中心的世界间距("!"半高~0.5 + 一点空隙)
+        static float EraContentHeight(Era era)
+        {
+            switch (era)
+            {
+                case Era.Young:  return 4.785f;
+                case Era.Middle: return 4.88f;
+                default:         return 5.0f;
+            }
+        }
+
+        /// <summary>AI 逐帧版:脚底(=transform 原点)到感叹号中心的高度。供各类头顶感叹号复用。</summary>
+        public static float AIHeadHeightFor(Era era) => EraContentHeight(era) + kHeadMargin;
 
         public event Action OnAllSpoken;
 
@@ -57,10 +76,20 @@ namespace LostGoddess
             //     但青年美术整体也比老年高——所以不能直接减 GetYOffset,得按 Era 单独定。
             //   如果外部显式传值 (>=0),用外部值;否则按 Era 查表。
             //   数值微调:如果青年感叹号还是太低/太高,改下面对应 case 的常数就行。
+            // AI 逐帧版判定:player 根节点上直接挂 SpriteRenderer(骨骼版 SpriteRenderer 在子节点)。
+            bool isAI = player.GetComponent<SpriteRenderer>() != null;
+
             float pivotOffset;
-            if (headOffsetY >= 0f)
+            if (isAI)
             {
-                pivotOffset = headOffsetY;   // 外部显式指定,直接用
+                // 逐帧版锚点在脚底:感叹号中心 = 脚底 + 归一化身高 + 头顶间距。
+                //   ⚠ 外部传进来的 headOffsetY(如 Woods 的 5.65)是骨骼版"脚起偏移"标定值,
+                //     对逐帧版无意义(身高已归一化),一律忽略,用固定头顶间距。
+                pivotOffset = EraContentHeight(GameState.CurrentEra) + kHeadMargin;
+            }
+            else if (headOffsetY >= 0f)
+            {
+                pivotOffset = headOffsetY;   // 骨骼版外部显式指定,直接用
             }
             else
             {
@@ -90,6 +119,7 @@ namespace LostGoddess
 
             var p = go.AddComponent<PlayerTalkPrompt>();
             p.followTarget = player.transform;
+            p._isAI = isAI;
             p.headOffsetY = pivotOffset;   // 存"pivot 到感叹号的偏移",LateUpdate 用它
             p._sr = sr;
             p._localBase = new Vector3(0f, pivotOffset, 0f);
@@ -112,16 +142,35 @@ namespace LostGoddess
 
         void LateUpdate()
         {
-            if (followTarget == null) return;
-            // 跟随 Player pivot + 头顶偏移 + 呼吸浮动
-            //   (headOffsetY 语义:从 pivot 往上多少;老年/青年 pivot 相对脚底的位置不同,
-            //    如需精调可在 Attach 时或外部覆写 headOffsetY)
+            // 形态切换(1/2/3、W、剧情)会销毁旧 Player 重建新 Player,旧 followTarget 随之失效。
+            //   失效时重新认领当前 Player,感叹号继续跟着新形态(否则会冻在原地)。
+            if (followTarget == null)
+            {
+                var pc = PlayerController.Instance;
+                if (pc == null) return;
+                followTarget = pc.transform;
+                _isAI = followTarget.GetComponent<SpriteRenderer>() != null;
+                RecalcHeadOffset();
+            }
+
+            // AI 逐帧版:锚点在脚底,头顶高度随当前形态身高走(形态切换后 headOffsetY 要重算)。
+            if (_isAI) headOffsetY = EraContentHeight(GameState.CurrentEra) + kHeadMargin;
+
+            // 跟随 Player 脚底/pivot + 头顶偏移 + 呼吸浮动
             _phase += Time.deltaTime * 6.5f;
             float bob = Mathf.Sin(_phase) * 0.15f;
             var pos = followTarget.position;
             pos.y = followTarget.position.y + headOffsetY + bob;
             pos.z = 0f;
             transform.position = pos;
+        }
+
+        /// <summary>重新认领 Player 后按当前形态重算头顶偏移(Attach 时的一次性逻辑的运行时版)。</summary>
+        void RecalcHeadOffset()
+        {
+            if (_isAI)
+                headOffsetY = EraContentHeight(GameState.CurrentEra) + kHeadMargin;
+            // 骨骼版:沿用 Attach 时标定的 pivotOffset(运行时不重标,保持零回归)
         }
 
         public override void OnClick()

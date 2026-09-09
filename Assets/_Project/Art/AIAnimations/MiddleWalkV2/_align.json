@@ -1,0 +1,29 @@
+{
+  "source": "C:\\Users\\yuan\\lost-goddess-game\\tools\\ai_video\\raw\\middle_walk_v2",
+  "frames": 46,
+  "canvas": [
+    260,
+    512
+  ],
+  "scale": 0.3941,
+  "fit_scale": 0.4176904176904177,
+  "crop_box": [
+    143,
+    34,
+    603,
+    1254
+  ],
+  "char_px": [
+    182,
+    481
+  ],
+  "paste": [
+    39,
+    29
+  ],
+  "feet_row": 510,
+  "feather": 2.0,
+  "temporal_window": 3,
+  "resample_target": 0,
+  "pingpong": false
+}

@@ -46,11 +46,11 @@ namespace LostGoddess
             //   (通常是 pivot 位置附近),导致 delta 反号,把角色越挪越深进地里。
             //   → 撤回,回到"pivot.y - yOffset(from) = groundY"的稳定假设。
             //   前提:Build 里 pivot 严格放在 groundY + yOffset,不做额外后处理。
-            float measuredGroundY = existing.transform.position.y - GetYOffset(from);
+            float measuredGroundY = existing.transform.position.y - YOffsetFor(from);
             _lastGroundY = measuredGroundY;
 
             Debug.Log($"[PlayerBuilder.OnEraChanged] 旧Player位置: ({spawnX:F2}, {existing.transform.position.y:F2}), " +
-                      $"反推 groundY = {measuredGroundY:F2} (from={from}, yOffset={GetYOffset(from):F2})");
+                      $"反推 groundY = {measuredGroundY:F2} (from={from}, yOffset={YOffsetFor(from):F2})");
             Debug.Log($"[PlayerBuilder.OnEraChanged] 开始构建新Player...");
 
             Object.Destroy(existing);
@@ -73,16 +73,54 @@ namespace LostGoddess
 
             Debug.Log($"[PlayerBuilder.Build] spriteName={spriteName}");
 
-            // 1) 优先加载骨骼动画 Prefab(Resources/Characters_Rigged/{era}.prefab)——含 SpriteSkin + Animator
-            var riggedPrefab = Resources.Load<GameObject>("Characters_Rigged/" + spriteName);
+            // 0) 最优先:AI 逐帧动画 Prefab(Resources/Characters_AI/{era}.prefab)。
+            //    单 SpriteRenderer 换图 + Idle/Walk 双状态 Animator(isWalking)。
+            //    锚点在脚底(帧已 BottomCenter),PPU100 下 scale=1 即 ~5 世界单位高、脚底落地平线。
+            //    2026-09-08 三形态动画定稿后启用;没有才回退骨骼/静态立绘。
+            var framePrefab = Resources.Load<GameObject>("Characters_AI/" + spriteName);
+            bool isFrameAnim = framePrefab != null;
 
-            Debug.Log($"[PlayerBuilder.Build] riggedPrefab={(riggedPrefab != null ? "已加载" : "未找到")}");
+            // 1) 回退:骨骼动画 Prefab(Resources/Characters_Rigged/{era}.prefab)——含 SpriteSkin + Animator
+            var riggedPrefab = isFrameAnim ? null : Resources.Load<GameObject>("Characters_Rigged/" + spriteName);
+
+            Debug.Log($"[PlayerBuilder.Build] framePrefab={(framePrefab != null ? "已加载(AI逐帧)" : "无")}, " +
+                      $"riggedPrefab={(riggedPrefab != null ? "已加载(骨骼)" : "未找到")}");
 
             GameObject go;
             SpriteRenderer sr = null;
             Animator anim = null;
 
-            if (riggedPrefab != null)
+            if (isFrameAnim)
+            {
+                Debug.Log($"[PlayerBuilder.Build] 实例化 AI 逐帧 Prefab...");
+                go = Object.Instantiate(framePrefab);
+                go.name = "Player";
+
+                // 帧精灵 BottomCenter 锚点 = 脚底,scale=1 时脚底正好在 transform 原点 → 落地平线。
+                // 2026-09-09 逐帧版原始身高与骨骼版不一致(青年偏高/中老年偏矮)。
+                //   逐帧帧是按设定文档比例归一化的,而游戏实跑一个多月的骨骼 prefab 是另一组比例,
+                //   用户要求恢复成骨骼版视觉身高。锚点在脚底,乘均匀缩放不改变脚底落位,只缩放整体。
+                //   系数 = 骨骼实测身高 / 逐帧实测身高(HeightProbe renderer 像素口径):
+                //     young 4.785/5.040=.949  middle 4.880/4.690=1.041  old 5.000/4.550=1.099
+                float frameScale = FrameScaleFor(era);
+                // 逐帧版锚点就在脚底,站位只由 groundY 决定 → yOffset 恒为 0。
+                // ⚠ 必须忽略调用方传入的 yOffsetOverride:那些值(GetChamber3YOffset/
+                //   GetChapter1YOffset 等)是给骨骼版"pivot 在身上"做的补偿(中青年 +2.x),
+                //   逐帧版若照吃会被抬上天/踩进地(陶罐间/第一章大殿/餐厅/武器室/追逐长廊)。
+                //   若逐帧版真要站高台,改 groundY,不要走 pivot 偏移。
+                go.transform.position = new Vector2(spawnX, groundY);
+                go.transform.localScale = Vector3.one * frameScale;
+
+                sr = go.GetComponent<SpriteRenderer>();
+                anim = go.GetComponent<Animator>();
+
+                // 碰撞体:角色约 2.6 宽 × 4.8 高(帧精灵 ~5 世界单位高,脚底在原点)
+                var fcol = go.AddComponent<BoxCollider2D>();
+                fcol.isTrigger = true;
+                fcol.size = new Vector2(2.6f, 4.8f);
+                fcol.offset = new Vector2(0, 2.4f);
+            }
+            else if (riggedPrefab != null)
             {
                 Debug.Log($"[PlayerBuilder.Build] 实例化骨骼Prefab...");
                 go = Object.Instantiate(riggedPrefab);
@@ -147,10 +185,12 @@ namespace LostGoddess
 
             var pc = go.AddComponent<PlayerController>();
             pc.moveSpeed = EraToSpeed(era);
-            // 骨骼版每个部位都有自己的 sortingOrder(内部叠放),不能被 PlayerController 覆盖
+            // 深度排序:骨骼版和 AI 逐帧版都用**固定** sortingOrder(角色身体 29~41,
+            // 道具/前景按既有层级摆),不能被动态排序覆盖 → 有 Animator 时 sortingTarget=null。
+            // 只有纯静态立绘回退(无 Animator)才按脚底 Y 动态排序。
             pc.sortingTarget = (anim != null) ? null : sr;
-            pc.animator = anim;              // 有骨骼就接上 Animator,自动播 Idle/Walk
-            pc.spriteFacesRight = false;     // 立绘默认朝左
+            pc.animator = anim;              // 接上 Animator,Idle/Walk 由 isWalking 驱动
+            pc.spriteFacesRight = false;     // 立绘/帧动画默认朝左
 
             // 注意：不要调用 Teleport，因为它会重置 Y 坐标，覆盖掉 yOffset
             // Player 的位置已经在上面设置好了（包括 yOffset）
@@ -191,6 +231,18 @@ namespace LostGoddess
             Debug.Log($"[PlayerBuilder.Build] Player构建完成！最终位置: {go.transform.position}");
 
             return go;
+        }
+
+        /// <summary>
+        /// 该形态实际生效的 Y 偏移。AI 逐帧 prefab 锚点在脚底(yOffset=0);
+        /// 骨骼/静态立绘 pivot 不在脚底,用 GetYOffset 的手调值。
+        /// Build 放位置和 Era 切换反推 groundY 都走这个,保证两者一致。
+        /// </summary>
+        static float YOffsetFor(Era era)
+        {
+            var framePrefab = Resources.Load<GameObject>("Characters_AI/" + EraToSpriteName(era));
+            if (framePrefab != null) return 0f;
+            return GetYOffset(era);
         }
 
         public static string EraToSpriteName(Era era)
@@ -244,16 +296,29 @@ namespace LostGoddess
             }
         }
 
-        public static float EraToSpeed(Era era)
+        /// <summary>AI 逐帧 prefab 的均匀缩放,把逐帧原始视觉身高校正回骨骼版实测身高。
+        /// 锚点 BottomCenter=脚底,缩放不改脚底落位。系数=骨骼身高/逐帧身高(2026-09-09 探针实测)。</summary>
+        static float FrameScaleFor(Era era)
         {
-            // 2026-07-21 【临时测试】老/中/青 三形态速度全部 × 5,方便测试跑图。
-            //   正式提交前必须还原为 0.9 / 1.3 / 1.8。
-            const float testMult = 5f;
             switch (era)
             {
-                case Era.Young: return 1.8f * testMult;   // 青年:快、轻盈
-                case Era.Middle: return 1.3f * testMult;  // 中年:中速沉稳
-                default: return 0.9f * testMult;          // 老年:慢、拖拽
+                case Era.Young: return 0.949f;  // 4.785 / 5.040
+                case Era.Middle: return 1.041f; // 4.880 / 4.690
+                default: return 1.099f;         // 5.000 / 4.550 (老年)
+            }
+        }
+
+        public static float EraToSpeed(Era era)
+        {
+            // 速度按 AI 逐帧动画的**步频比例**配,让位移匹配脚步、脚底不打滑。
+            //   定稿步频(步/秒):青年 1.26 / 中年 0.91 / 老年 ~0.55(44帧插值半速)。
+            //   2026-09-08 用户反馈"三种形态都太慢",等比 ×2(手感调参,可能略脚底打滑,
+            //     待实机确认后再按"打滑就降速、踏步就升速"微调)。
+            switch (era)
+            {
+                case Era.Young: return 3.6f;    // 青年:快、轻盈(1.8×2)
+                case Era.Middle: return 2.6f;   // 中年:中速沉稳(1.3×2)
+                default: return 1.58f;          // 老年:慢、拖拽(0.79×2)
             }
         }
 

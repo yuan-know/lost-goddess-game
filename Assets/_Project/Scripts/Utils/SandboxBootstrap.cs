@@ -62,6 +62,12 @@ namespace LostGoddess
                 foreach (var cs in FindObjectsOfType<Cutscene>()) cs.Stop();
                 Flash("已强制解锁角色 (R)");
             }
+
+            // 调试切换形态:1=青年 2=中年 3=老年(打包前可移除)。
+            // SetEra 触发 OnEraChanged → PlayerBuilder 按新形态重建(优先 AI 逐帧 prefab)。
+            if (Input.GetKeyDown(KeyCode.Alpha1)) SwitchEra(Era.Young);
+            else if (Input.GetKeyDown(KeyCode.Alpha2)) SwitchEra(Era.Middle);
+            else if (Input.GetKeyDown(KeyCode.Alpha3)) SwitchEra(Era.Old);
         }
 
         // 运行时上下平移背景三层,微调"画上地面 vs 老人脚底"对齐

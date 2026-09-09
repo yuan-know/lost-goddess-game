@@ -139,7 +139,18 @@ namespace LostGoddess.Content
 
         void LateUpdate()
         {
-            if (followTarget == null) return;
+            // 形态切换会重建 Player,旧 followTarget 失效 → 重新认领当前 Player。
+            if (followTarget == null)
+            {
+                var pc0 = PlayerController.Instance;
+                if (pc0 == null) return;
+                followTarget = pc0.transform;
+            }
+
+            // AI 逐帧版:锚点在脚底,头顶高度按当前形态身高走(忽略为骨骼版标定的 headOffsetY=5.65)。
+            if (followTarget.GetComponent<SpriteRenderer>() != null)
+                headOffsetY = PlayerTalkPrompt.AIHeadHeightFor(GameState.CurrentEra);
+
             _phase += Time.deltaTime * 6.5f;
             float bob = Mathf.Sin(_phase) * 0.15f;
             var p = followTarget.position;

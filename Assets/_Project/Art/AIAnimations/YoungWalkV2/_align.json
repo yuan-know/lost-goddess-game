@@ -1,0 +1,29 @@
+{
+  "source": "C:\\Users\\yuan\\lost-goddess-game\\tools\\ai_video\\raw\\young_walk_v3",
+  "frames": 44,
+  "canvas": [
+    260,
+    512
+  ],
+  "scale": 0.4093,
+  "fit_scale": 0.4146341463414634,
+  "crop_box": [
+    114,
+    23,
+    565,
+    1252
+  ],
+  "char_px": [
+    185,
+    503
+  ],
+  "paste": [
+    37,
+    7
+  ],
+  "feet_row": 510,
+  "feather": 2.0,
+  "temporal_window": 3,
+  "resample_target": 0,
+  "pingpong": false
+}

@@ -47,10 +47,19 @@ namespace LostGoddess
             contactFilter.useTriggers = true;
             contactFilter.useLayerMask = true;
 
-            var hits = new Collider2D[1];
+            // 取该点下【全部】重叠碰撞体,而不是只取一个:
+            // 角色自身的 trigger BoxCollider 可能盖在交互物上(逐帧版角色碰撞体近全身大小,
+            // 不像骨骼版被 0.25 根缩放缩到很小)。只取第一个会随机命中角色碰撞体 →
+            // 拿不到 InteractableBase → 误判成"点空地",表现为人物挡住时点不了交互。
+            // 这里跳过任何不带 InteractableBase 的碰撞体(角色/装饰),挑出真正的交互物。
+            var hits = new Collider2D[16];
             int count = Physics2D.OverlapPoint(worldPoint, contactFilter, hits);
-            var hit = count > 0 ? hits[0] : null;
-            InteractableBase target = hit != null ? hit.GetComponentInParent<InteractableBase>() : null;
+            InteractableBase target = null;
+            for (int i = 0; i < count; i++)
+            {
+                var t = hits[i] != null ? hits[i].GetComponentInParent<InteractableBase>() : null;
+                if (t != null) { target = t; break; }
+            }
 
             UpdateHover(target);
 
