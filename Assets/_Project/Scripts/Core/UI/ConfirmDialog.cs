@@ -93,7 +93,7 @@ namespace LostGoddess
             var qGo = new GameObject("Question");
             qGo.transform.SetParent(panelGo.transform, false);
             _questionLabel = qGo.AddComponent<Text>();
-            _questionLabel.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+            _questionLabel.font = GameFonts.Primary;
             _questionLabel.fontSize = 40;
             _questionLabel.color = new Color(1f, 0.96f, 0.9f);
             _questionLabel.alignment = TextAnchor.MiddleCenter;
@@ -142,7 +142,7 @@ namespace LostGoddess
             var txtGo = new GameObject("Text");
             txtGo.transform.SetParent(go.transform, false);
             var txt = txtGo.AddComponent<Text>();
-            txt.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+            txt.font = GameFonts.Primary;
             txt.fontSize = 40;
             txt.fontStyle = FontStyle.Bold;
             txt.color = Color.white;

@@ -120,7 +120,7 @@ namespace LostGoddess
             var textGo = new GameObject("Text");
             textGo.transform.SetParent(panelGo.transform, false);
             var text = textGo.AddComponent<Text>();
-            text.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+            text.font = GameFonts.Primary;
             text.fontSize = 28;
             text.color = Color.white;
             text.alignment = TextAnchor.MiddleLeft;

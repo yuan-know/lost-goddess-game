@@ -14,4 +14,10 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/_Project/Scenes/AIAnim_Final3Forms.unity
     guid: 066ea2c3e46996a4d8ff051747b1b33c
+  - enabled: 1
+    path: Assets/_Project/Scenes/SmokeSprayDebug.unity
+    guid: d751ccfe57366e141af9662a42bbe8fb
+  - enabled: 1
+    path: Assets/_Project/Scenes/SmokeSprayInScene.unity
+    guid: 555fcffd331f4e942846af647f6f1bae
   m_configObjects: {}

@@ -198,7 +198,7 @@ namespace LostGoddess
             var txtGo = new GameObject("Label");
             txtGo.transform.SetParent(barGo.transform, false);
             var label = txtGo.AddComponent<Text>();
-            label.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+            label.font = GameFonts.Primary;
             label.fontSize = 30;
             label.color = new Color(1f, 0.96f, 0.9f);   // 微暖白
             label.alignment = TextAnchor.MiddleCenter;   // 剧本感:居中

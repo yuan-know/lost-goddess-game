@@ -256,7 +256,7 @@ namespace LostGoddess
 
             var closeTxt = closeBtnText.AddComponent<Text>();
             closeTxt.text = "×";  // 使用×符号
-            closeTxt.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+            closeTxt.font = GameFonts.Primary;
             closeTxt.fontSize = 90;  // 2026-07-21 加大字号,配合更大的按钮
             closeTxt.color = Color.white;
             closeTxt.alignment = TextAnchor.MiddleCenter;
@@ -310,7 +310,7 @@ namespace LostGoddess
             txtGo.transform.SetParent(descGo.transform, false);
             var txt = txtGo.AddComponent<Text>();
             txt.text = "容量很大的旧皮革背包,带有可照明的油灯。结实耐用,可在此查看你收集的所有的东西。";
-            txt.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+            txt.font = GameFonts.Primary;
             txt.fontSize = 30;                    // 与 DialogueSystem 字幕 fontSize=30 一致
             txt.color = new Color(1f, 0.96f, 0.9f);  // 与字幕相同的暖白
             txt.alignment = TextAnchor.MiddleCenter;

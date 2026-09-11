@@ -90,3 +90,6 @@ tools/ai_video/_*.png
 
 # Unity 动画调试备份
 *.bak.anim
+
+# WorkBuddy 工作区数据(本地记忆,不入库)
+.workbuddy/
