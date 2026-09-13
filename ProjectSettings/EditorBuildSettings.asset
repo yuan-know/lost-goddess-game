@@ -20,4 +20,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/_Project/Scenes/SmokeSprayInScene.unity
     guid: 555fcffd331f4e942846af647f6f1bae
+  - enabled: 1
+    path: Assets/_Project/Scenes/GearDialDebug.unity
+    guid: 7b4ecdf3c5044e99929ab8cf09a17ad5
   m_configObjects: {}
