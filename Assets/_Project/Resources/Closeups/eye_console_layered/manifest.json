@@ -1,0 +1,191 @@
+{
+  "canvas": [
+    3400,
+    1200
+  ],
+  "container": [
+    1920,
+    678
+  ],
+  "layers": [
+    {
+      "key": "base",
+      "file": "ec_base_00",
+      "rect": [
+        1211,
+        503,
+        2191,
+        993
+      ],
+      "pivot": [
+        1701,
+        748
+      ],
+      "frames": [
+        "ec_base_00",
+        "ec_base_01",
+        "ec_base_02",
+        "ec_base_03",
+        "ec_base_04",
+        "ec_base_05",
+        "ec_base_06",
+        "ec_base_07",
+        "ec_base_08",
+        "ec_base_09",
+        "ec_base_10",
+        "ec_base_11",
+        "ec_base_12",
+        "ec_base_13",
+        "ec_base_14",
+        "ec_base_15",
+        "ec_base_16",
+        "ec_base_17",
+        "ec_base_18",
+        "ec_base_19",
+        "ec_base_20"
+      ]
+    },
+    {
+      "key": "eye_frame_back",
+      "file": "ec_eye_frame_back",
+      "rect": [
+        1474,
+        149,
+        1926,
+        456
+      ],
+      "pivot": [
+        1699.5,
+        302.0
+      ]
+    },
+    {
+      "key": "eye_mask",
+      "file": "ec_eye_mask",
+      "rect": [
+        1545,
+        250,
+        1856,
+        349
+      ],
+      "pivot": [
+        1700.0,
+        299.0
+      ]
+    },
+    {
+      "key": "eyeball",
+      "file": "ec_eyeball",
+      "rect": [
+        1649,
+        249,
+        1731,
+        325
+      ],
+      "pivot": [
+        1689.5,
+        286.5
+      ]
+    },
+    {
+      "key": "eye_frame_front",
+      "file": "ec_eye_frame_front",
+      "rect": [
+        1474,
+        149,
+        1926,
+        456
+      ],
+      "pivot": [
+        1699.5,
+        302.0
+      ]
+    },
+    {
+      "key": "eyelid",
+      "file": "ec_eyelid_00",
+      "rect": [
+        1470,
+        145,
+        1929,
+        460
+      ],
+      "pivot": [
+        1699.5,
+        302.0
+      ],
+      "frames": [
+        "ec_eyelid_00",
+        "ec_eyelid_01",
+        "ec_eyelid_02",
+        "ec_eyelid_03",
+        "ec_eyelid_04",
+        "ec_eyelid_05",
+        "ec_eyelid_06",
+        "ec_eyelid_07",
+        "ec_eyelid_08",
+        "ec_eyelid_09",
+        "ec_eyelid_10",
+        "ec_eyelid_11",
+        "ec_eyelid_12",
+        "ec_eyelid_13"
+      ]
+    },
+    {
+      "key": "knob_left_shell",
+      "file": "ec_knob_left_shell",
+      "rect": [
+        1309,
+        685,
+        1473,
+        862
+      ],
+      "pivot": [
+        1390.2,
+        758.6
+      ]
+    },
+    {
+      "key": "knob_left_top",
+      "file": "ec_knob_left_top",
+      "rect": [
+        1320,
+        697,
+        1461,
+        820
+      ],
+      "pivot": [
+        1390.2,
+        758.6
+      ]
+    },
+    {
+      "key": "knob_mid_shell",
+      "file": "ec_knob_mid_shell",
+      "rect": [
+        1629,
+        707,
+        1796,
+        893
+      ],
+      "pivot": [
+        1712.8,
+        785.3
+      ]
+    },
+    {
+      "key": "knob_mid_top",
+      "file": "ec_knob_mid_top",
+      "rect": [
+        1641,
+        723,
+        1785,
+        849
+      ],
+      "pivot": [
+        1712.8,
+        785.3
+      ]
+    }
+  ]
+}

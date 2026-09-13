@@ -1,0 +1,59 @@
+{
+  "canvas": [
+    3400,
+    1200
+  ],
+  "rect": [
+    1211,
+    503,
+    2191,
+    993
+  ],
+  "frames": [
+    "ec_base_00",
+    "ec_base_01",
+    "ec_base_02",
+    "ec_base_03",
+    "ec_base_04",
+    "ec_base_05",
+    "ec_base_06",
+    "ec_base_07",
+    "ec_base_08",
+    "ec_base_09",
+    "ec_base_10",
+    "ec_base_11",
+    "ec_base_12",
+    "ec_base_13",
+    "ec_base_14",
+    "ec_base_15",
+    "ec_base_16",
+    "ec_base_17",
+    "ec_base_18",
+    "ec_base_19",
+    "ec_base_20"
+  ],
+  "frame_source": [
+    0,
+    20
+  ],
+  "transform": [
+    [
+      1.3598326359832635,
+      0.0,
+      772.0543933054394
+    ],
+    [
+      0.0,
+      1.2996108949416343,
+      308.40466926070036
+    ],
+    [
+      0.0,
+      0.0,
+      1.0
+    ]
+  ],
+  "erode_px": 2,
+  "blue_br_min": 6,
+  "edge_band": 4
+}
