@@ -343,78 +343,75 @@ namespace LostGoddess
         }
 
         // ── 过场视频/白闪 ─────────────────────────────────────────────────
+        /// <summary>解谜成功后的收尾。
+        /// v3 修复:第一件事就是白幕遮屏 + 关掉特写层,然后再去准备/播放开门视频。
+        /// 旧版是先 Prepare 视频(最长 5 秒)才 Close 特写 → 齿轮会一直挂在原地。</summary>
         static IEnumerator PlayDoorCutsceneThenCallback(Action cb)
         {
-            Debug.Log("[GearDialCloseup] PlayDoorCutsceneThenCallback 协程开始");
-            // 优先路径:尝试播放开门过场视频
+            // ① 第一时间白幕遮屏,把齿轮盖掉
+            var overlay = FadeOverlayColored.Get();
+            if (overlay != null)
+                yield return overlay.FadeToColor(Color.white, 0.2f);
+
+            // ② 立刻关特写层(齿轮/旋钮/道具在这里销毁,不会留在原地)
+            Debug.Log("[GearDialCloseup] 解谜完成,先关闭特写层再走后续流程");
+            CloseupView.SetCanClose(true);
+            CloseupView.Close();
+
+            // ③ 准备开门视频(此时屏幕已被白幕盖住,准备多久都看不见齿轮)
             var vp = VideoPlayerProxy.Create("~DoorOpenVideo");
+            bool videoOk = false;
             if (vp != null)
             {
                 string videoPath = FindDoorVideoFile();
-                if (videoPath != null)
+                if (videoPath != null && vp.Setup(videoPath))
                 {
-                    Debug.Log($"[GearDialCloseup] 找到开门视频: {videoPath}");
-                    bool setupOk = vp.Setup(videoPath);
-                    if (setupOk)
+                    Debug.Log($"[GearDialCloseup] 找到开门视频: {videoPath},开始准备");
+                    vp.Prepare();
+                    float timeout = 5f;
+                    while (!vp.IsPrepared && !vp.HasError && timeout > 0f)
                     {
-                        vp.Prepare();
-                        float timeout = 5f;
-                        while (!vp.IsPrepared && !vp.HasError && timeout > 0)
-                        {
-                            timeout -= Time.unscaledDeltaTime;
-                            yield return null;
-                        }
-                        if (vp.IsPrepared && !vp.HasError)
-                        {
-                            Debug.Log("[GearDialCloseup] 视频准备完成,开始播放");
-                            CloseupView.SetCanClose(true);  // 允许关闭
-                            CloseupView.Close();
-                            vp.Play();
-                            while (!vp.IsFinished && !vp.HasError)
-                            yield return null;
-                            Debug.Log("[GearDialCloseup] 视频播放完成");
-                            vp.Destroy();
-                            Debug.Log("[GearDialCloseup] 准备调用回调函数 cb?.Invoke()");
-                            cb?.Invoke();
-                            Debug.Log("[GearDialCloseup] 回调函数已调用完成");
-                            yield break;
-                        }
-                        else
-                        {
-                            Debug.LogWarning("[GearDialCloseup] 视频准备失败或超时,退化为白闪");
-                            vp.Destroy();
-                        }
+                        timeout -= Time.unscaledDeltaTime;
+                        yield return null;
                     }
-                    else
-                    {
-                        Debug.LogWarning("[GearDialCloseup] 视频 Setup 失败,退化为白闪");
-                        vp.Destroy();
-                    }
+                    videoOk = vp.IsPrepared && !vp.HasError;
+                    if (!videoOk)
+                        Debug.LogWarning("[GearDialCloseup] 视频准备失败或超时,退化为白闪");
                 }
                 else
                 {
-                    Debug.LogWarning("[GearDialCloseup] 未找到开门视频文件,退化为白闪");
-                    vp.Destroy();
+                    Debug.LogWarning("[GearDialCloseup] 视频 Setup 失败或未找到视频文件,退化为白闪");
                 }
+                if (!videoOk) vp.Destroy();
+            }
+            else
+            {
+                Debug.LogWarning("[GearDialCloseup] VideoPlayer 不可用,退化为白闪");
             }
 
-            // 退化路径:白闪
-            Debug.Log("[GearDialCloseup] 进入白闪/兜底路径");
-            CloseupView.SetCanClose(true);  // 允许关闭
-            var overlay = FadeOverlayColored.Get();
-            if (overlay != null)
+            // ④ 有视频:先揭开白幕再播;没视频:白幕上停一下再揭开
+            if (videoOk)
             {
-                yield return overlay.FadeToColor(Color.white, 0.3f);
-                CloseupView.Close();
-                yield return new WaitForSecondsRealtime(0.5f);
+                Debug.Log("[GearDialCloseup] 视频准备完成,开始播放");
+                vp.Play();
+                if (overlay != null)
+                    yield return overlay.FadeToClear(0.3f);
+                while (!vp.IsFinished && !vp.HasError)
+                    yield return null;
+                Debug.Log("[GearDialCloseup] 视频播放完成");
+                vp.Destroy();
+            }
+            else if (overlay != null)
+            {
+                yield return new WaitForSecondsRealtime(0.35f);
                 yield return overlay.FadeToClear(0.3f);
             }
             else
             {
-                CloseupView.Close();
-                yield return new WaitForSecondsRealtime(0.8f);
+                yield return new WaitForSecondsRealtime(0.5f);
             }
-            Debug.Log("[GearDialCloseup] 白闪/兜底路径完成，准备调用回调函数");
+
+            Debug.Log("[GearDialCloseup] 收尾完成,调用回调 cb?.Invoke()");
             cb?.Invoke();
             Debug.Log("[GearDialCloseup] 回调函数已调用完成");
         }
