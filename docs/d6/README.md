@@ -24,6 +24,37 @@
 - 核验：`核验_v7_齿轮局部_0度.png`、`_转-72度.png`、`_转-144度.png`、
   `核验_v7_三档位并排.png`、`亮度对比_0.72_0.50.png`
 
+## 圆窗图案 ↔ 道具对应（2026-09-14 修正）
+
+**问题**：齿轮转到某个档位时，正上方孔位里的图案和正在解密的道具对不上 ——
+5 个全错。代码里隐含假设是「槽位 = 转过的档数」，而素材里孔的排列顺序和
+PropSlot 枚举顺序完全是两回事。
+
+**识别**（`识别_齿轮5孔图案.png` / `识别_5个道具图案.png` / `配对验证_孔vs道具.png`）：
+孔位按顺时针编号（0=正上 1=右上 2=右下 3=左下 4=左上），实测每个孔画的图案：
+
+| 孔位 | 图案特征 | 道具 |
+|---|---|---|
+| 孔0 正上 | 黑胶唱片 + 中心亮点 + 右上唱臂 | Gramophone (2) |
+| 孔1 右上 | 长针贯穿直径、菱形针尖的罗盘 | LongCompass (3) |
+| 孔2 右下 | 顶部带环的怀表 | SmallCompass (4) |
+| 孔3 左下 | 带刻度钟面 + 细针指向 1 点 | Dial (1) |
+| 孔4 左上 | 带刻度盘面 + 粗针的按钮盘 | Button (0) |
+
+即 `kSlotByWindow = [2,3,4,1,0]`。
+
+**实现**（`GearDialCloseup.GearDialBehaviour`）：
+- `AngleToWindow(angle)`：齿轮顺时针转 step 档，补到正上方的是 `(5-step)` 号孔；
+- `DetentToSlot(angle) = kSlotByWindow[AngleToWindow(angle)]`；
+- `SlotToAngle(slot)`：把该道具的孔转回正上方所需的角度
+  （Button 72° / Dial 144° / Gramophone 0° / LongCompass 288° / SmallCompass 216°）；
+- `Awake` 的初始槽位由 `DetentToSlot(0)` 反查（= Gramophone），不再硬编码 0。
+- 注意：图标会跟着齿轮一起转，所以各档位下图标朝向不同，这是物理转盘的固有表现。
+
+**验证**：`验证_对应关系_5槽位正上方孔.png` —— 5 个槽位各自转到定好的角度，
+正上方孔位显示的正是该道具的图标。工具：`tools/d6_identify_windows.py`、
+`tools/d6_pair_check.py`、`tools/d6_verify_mapping.py`。
+
 ## 过程记录
 
 ### 为什么圆窗一开始看不清

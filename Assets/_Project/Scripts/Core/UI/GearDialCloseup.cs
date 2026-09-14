@@ -572,14 +572,14 @@ namespace LostGoddess
                     ApplyPropRotation(i);
                 }
 
-                // 初始槽位 0,齿轮角度 0
-                _currentSlot = 0;
+                // 初始齿轮角度 0 → 正上方孔位里画的道具
+                _currentSlot = DetentToSlot(0f);
                 _gearAngle = 0f;
                 _gearVisual = 0f;
                 _gearSnapping = false;
-                _knobVisual = _propRotations[0];
+                _knobVisual = _propRotations[_currentSlot];
                 ApplyGearVisual(0f);
-                CommitSlot(0, instant: true);
+                CommitSlot(_currentSlot, instant: true);
 
                 _notifiedSolved = false;
 
@@ -632,13 +632,41 @@ namespace LostGoddess
 
             // ── 齿轮:连续跟手 + 磁吸顿挫 + 松手过冲吸附 ────────────────────────
 
-            /// <summary>把角度换算成最近的齿轮档位(0~4)。</summary>
+            // ── 齿轮孔位与道具的对应(素材实测,见 docs/d6/识别_齿轮5孔图案.png)──
+            // 盘面上 5 个圆窗各画着一个道具的小图标,孔位按顺时针编号:
+            //   0=正上 1=右上 2=右下 3=左下 4=左上
+            // 实测图案: 孔0=唱片机 孔1=长罗盘 孔2=小罗盘 孔3=表盘 孔4=按钮
+            // 转到「正上方」的孔 = 当前正在解密的道具 → 图案必须和显示的道具对上。
+            static readonly int[] kSlotByWindow = new int[kPropCount] {
+                (int)PropSlot.Gramophone,    // 孔0 正上:黑胶唱片 + 右上唱臂
+                (int)PropSlot.LongCompass,   // 孔1 右上:长针贯穿直径的罗盘
+                (int)PropSlot.SmallCompass,  // 孔2 右下:顶部带环的怀表
+                (int)PropSlot.Dial,          // 孔3 左下:带刻度钟面 + 细针
+                (int)PropSlot.Button,        // 孔4 左上:带刻度 + 粗针的按钮盘
+            };
+
+            /// <summary>齿轮角度(顺时针,度) → 此刻转到正上方的孔位编号(0~4)。
+            /// 齿轮顺时针转 1 档,原正上方的孔顺时针走开一格,
+            /// 所以补到正上方的是编号小一格的孔。</summary>
+            static int AngleToWindow(float angle)
+            {
+                int step = Mathf.RoundToInt(Mathf.Repeat(angle, 360f) / kGearStep) % kPropCount;
+                return (kPropCount - step) % kPropCount;
+            }
+
+            /// <summary>齿轮角度 → 当前档位 = 正上方孔位里画的道具。</summary>
             static int DetentToSlot(float angle)
             {
-                float a = Mathf.Repeat(angle, 360f);
-                int d = Mathf.RoundToInt(a / kGearStep) % kPropCount;
-                if (d < 0) d += kPropCount;
-                return d;
+                return kSlotByWindow[AngleToWindow(angle)];
+            }
+
+            /// <summary>槽位 → 把该道具的图案转到正上方所需的齿轮角度(顺时针,度)。</summary>
+            static float SlotToAngle(int slot)
+            {
+                int w = 0;
+                for (int i = 0; i < kPropCount; i++)
+                    if (kSlotByWindow[i] == slot) { w = i; break; }
+                return Mathf.Repeat(kGearStep * ((kPropCount - w) % kPropCount), 360f);
             }
 
             /// <summary>玩家拖动齿轮时调用(增量角度)。</summary>
@@ -927,15 +955,16 @@ namespace LostGoddess
 
             // ── 调试 API(供 GearDialDebugBootstrap 使用)────────────────────
 
-            /// <summary>直接跳到某个槽位(带齿轮旋转动画)。</summary>
+            /// <summary>直接跳到某个槽位(把该道具的图案转到正上方,带齿轮旋转动画)。</summary>
             public void DebugJumpToSlot(int slot)
             {
                 slot = ((slot % kPropCount) + kPropCount) % kPropCount;
+                float ang = SlotToAngle(slot);
                 _gearSnapping = false;
-                _gearAngle = Mathf.Repeat(slot * kGearStep, 360f);
+                _gearAngle = ang;
                 if (slot != _currentSlot) { CommitSlot(slot, instant: false); PlayClick(); }
                 _gearSnapFrom = _gearVisual;
-                _gearSnapTo = slot * kGearStep;
+                _gearSnapTo = ang;
                 _gearSnapT = 0f;
                 _gearSnapping = true;
             }
