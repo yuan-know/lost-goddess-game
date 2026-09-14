@@ -1,0 +1,411 @@
+// ============================================================================
+//  EyeCorridorLaserDebugBootstrap.cs —— S05 千眼回廊 · 躲避激光 独立调试场景 (2026-09-14)
+//
+//  挂在空场景里唯一的 GameObject 上,Play 后:
+//    1) 建 GameManager(若无)+ 相机(正交 orthoSize=6 + 信箱黑边)+ ClickInputManager
+//    2) 用 SceneRoomBuilder.EyeCorridor 建出长廊(复用 ChaseCorridor 美术;黄铜眼用 psd 分层的
+//       bg_eye_shell + bg_eye_pupil + bg_eye_lid,瞳孔跟随光柱转动、滚到眼角被眼睑压住、
+//       躲进阴影时收成缝 —— 不切整张底图)
+//    3) 建青年形态的提尔(PlayerBuilder),摆在长廊入口
+//    4) 起 EyeCorridorLaserPuzzle:黄铜眼光柱横扫 + 兜帽石像瞬移 + 3 秒锁定灼烧死亡 + 走完全程
+//    5) 左上角调试 HUD:实时改手感参数 / 显示判定内态 / 快捷键跳段、强制死亡、重置
+//
+//  生成场景:Unity 菜单 ▸ 失落的女神 ▸ 生成千眼回廊激光调试场景
+//            (Assets/_Project/Scenes/EyeCorridorLaserDebug.unity,纯调试不进正式包)
+//
+//  操作:
+//    鼠标点地面     → 走过去(普通移动)
+//    鼠标点兜帽石像 → 瞬移进它的阴影(保命手段,石像高亮=可用,变暗=已失效)
+//    走到右端       → 走完全程(谜题解开,盲僧赠符文)
+//    ← / →          → 光柱横扫速度 − / +
+//    [ / ]          → 地面光斑半宽(危险区) − / +
+//    - / =          → ★3 秒保命窗口 − / +        (脚本硬性 3.0,只给调试)
+//    , / .          → 石像阴影半宽 − / +
+//    ; / '          → 石像冷却(仅"石像一次性"关闭时生效) − / +
+//    M              → 判定模式:保命窗口(3 秒内进阴影) / 累计暴露(3 秒总量)
+//    L              → 被锁定后"离开光柱是否清零"(默认关=脚本直读)
+//    O              → 石像是否一次性(默认开:用过就失效,呼应"石眼只暂时闭上")
+//    Y              → 重生点:密室入口(脚本原文) / 最近用过的石像
+//    N              → 瞬移距离:相邻一尊(4.6) / 隔一尊(8.8) / 不限(0)
+//    T              → 调试区可视化(危险区/安全区)开关
+//    P              → 暂停/继续光柱横扫
+//    Z / X          → 黄铜眼"眼珠跟随光柱"左摆幅 − / +   (Shift+Z / Shift+X 调右摆幅)
+//    F              → 眼珠摆幅三档预设:贴边不遮挡 / 轻微遮挡 / 明显遮挡
+//    V              → 眼珠是否跟随光柱转动(开/关,关掉可对比)
+//    C              → 躲进阴影闭眼时,光柱是否隐藏(开/关;关掉=始终可见,方便对位)
+//    Q / E          → 黄铜眼整体尺寸 − / +   (1.0 = 严格还原最初那版 bg_brass_eye 的大小)
+//    W / S          → 黄铜眼上 / 下移(0.02)
+//    A / D          → 黄铜眼左 / 右移(0.02)
+//    U              → 黄铜眼尺寸/位置复位到最初那版
+//    J              → 播一遍完整的眼睑「睁→闭→睁」开合动画(对美术,不参与玩法)
+//    K              → 强制触发一次死亡(测演出:白光闪两下 → 闪黑 → 判词 → 回退)
+//    R              → 重置谜题(石像全部恢复,人回入口)
+//    I              → 重播开场(旁白+盲僧)
+//    B              → 手动切换 黄铜眼 睁 / 闭(眼睑序列帧会跟着开合,不再切整张底图)
+//    1 ~ 7          → 瞬移到第 N 尊兜帽石像
+//    G / H          → 显示 / 隐藏 HUD
+// ============================================================================
+
+using System.Text;
+using UnityEngine;
+using UnityEngine.UI;
+using LostGoddess.Content;
+
+namespace LostGoddess
+{
+    public class EyeCorridorLaserDebugBootstrap : MonoBehaviour
+    {
+        Text _hud;
+        bool _showHud = false;    // 2026-09-14 改为默认隐藏:游戏画面不再显示调试文字,需要调参时按 G/H 唤出
+        EyeCorridorLaserPuzzle _pz;
+        bool _eyesClosed;
+        int _occlPreset = 1;      // 眼珠摆幅预设:0=贴边不遮挡 1=轻微遮挡 2=明显遮挡
+
+        void Start()
+        {
+            EnsureGameManager();
+            PlayerBuilder.EnableAutoRebuild();
+            AudioManager.Init(this);
+
+            GameState.CurrentRoom = Rooms.Chapter1_EyeCorridor;
+            GameState.CurrentEra = Era.Young;
+
+            BuildCamera();
+            LetterboxOverlay.Ensure();
+            BuildRoomAndPlayer();
+
+            _pz = EyeCorridorLaserPuzzle.Instance;
+            if (_pz == null) Debug.LogError("[EyeCorridorDebug] 谜题没起来(EyeCorridorLaserPuzzle.Instance == null)。");
+
+            BuildHud();
+            Debug.Log("[EyeCorridorDebug] 点石像=瞬移躲光;被光柱照到 3 秒内必须进阴影,否则灼烧死亡。T 看判定区,G/H 唤出调试 HUD(默认隐藏)。");
+        }
+
+        void Update()
+        {
+            if (Input.GetKeyDown(KeyCode.G) || Input.GetKeyDown(KeyCode.H))
+            {
+                _showHud = !_showHud;
+                if (_hud != null) _hud.enabled = _showHud;
+            }
+
+            if (_pz == null) _pz = EyeCorridorLaserPuzzle.Instance;
+            if (_pz == null) return;
+
+            // ── 手感参数 ──
+            float d = Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift) ? 0.25f : 1f;
+            if (Input.GetKeyDown(KeyCode.LeftArrow))
+                EyeCorridorLaserPuzzle.BeamSpeed = Mathf.Max(0.5f, EyeCorridorLaserPuzzle.BeamSpeed - 0.5f * d);
+            if (Input.GetKeyDown(KeyCode.RightArrow))
+                EyeCorridorLaserPuzzle.BeamSpeed = Mathf.Min(20f, EyeCorridorLaserPuzzle.BeamSpeed + 0.5f * d);
+            if (Input.GetKeyDown(KeyCode.LeftBracket))
+                EyeCorridorLaserPuzzle.BeamHalfWidth = Mathf.Max(0.3f, EyeCorridorLaserPuzzle.BeamHalfWidth - 0.2f * d);
+            if (Input.GetKeyDown(KeyCode.RightBracket))
+                EyeCorridorLaserPuzzle.BeamHalfWidth = Mathf.Min(8f, EyeCorridorLaserPuzzle.BeamHalfWidth + 0.2f * d);
+            if (Input.GetKeyDown(KeyCode.Minus))
+                EyeCorridorLaserPuzzle.GraceSeconds = Mathf.Max(0.2f, EyeCorridorLaserPuzzle.GraceSeconds - 0.25f * d);
+            if (Input.GetKeyDown(KeyCode.Equals))
+                EyeCorridorLaserPuzzle.GraceSeconds = Mathf.Min(10f, EyeCorridorLaserPuzzle.GraceSeconds + 0.25f * d);
+            if (Input.GetKeyDown(KeyCode.Comma))
+                EyeCorridorLaserPuzzle.ShadowHalfWidth = Mathf.Max(0.3f, EyeCorridorLaserPuzzle.ShadowHalfWidth - 0.1f * d);
+            if (Input.GetKeyDown(KeyCode.Period))
+                EyeCorridorLaserPuzzle.ShadowHalfWidth = Mathf.Min(4f, EyeCorridorLaserPuzzle.ShadowHalfWidth + 0.1f * d);
+            if (Input.GetKeyDown(KeyCode.Semicolon))
+                EyeCorridorLaserPuzzle.StatueCooldown = Mathf.Max(0f, EyeCorridorLaserPuzzle.StatueCooldown - 0.5f * d);
+            if (Input.GetKeyDown(KeyCode.Quote))
+                EyeCorridorLaserPuzzle.StatueCooldown = Mathf.Min(20f, EyeCorridorLaserPuzzle.StatueCooldown + 0.5f * d);
+
+            // ── 规则开关 ──
+            if (Input.GetKeyDown(KeyCode.M))
+            {
+                EyeCorridorLaserPuzzle.UseGraceMode = !EyeCorridorLaserPuzzle.UseGraceMode;
+                _pz.Toast(EyeCorridorLaserPuzzle.UseGraceMode
+                    ? "判定模式:被照到后 3 秒内必须进阴影(直读脚本)"
+                    : "判定模式:累计暴露满 3 秒(离开光柱会回退)");
+            }
+            if (Input.GetKeyDown(KeyCode.L))
+            {
+                EyeCorridorLaserPuzzle.GraceResetOnLeave = !EyeCorridorLaserPuzzle.GraceResetOnLeave;
+                _pz.Toast("离开光柱是否清零倒计时:" + (EyeCorridorLaserPuzzle.GraceResetOnLeave ? "是(宽松)" : "否(脚本直读)"));
+            }
+            if (Input.GetKeyDown(KeyCode.O))
+            {
+                EyeCorridorLaserPuzzle.StatueOnce = !EyeCorridorLaserPuzzle.StatueOnce;
+                _pz.Toast("石像一次性:" + (EyeCorridorLaserPuzzle.StatueOnce ? "是(用过即失效)" : "否(可反复用)"));
+            }
+            if (Input.GetKeyDown(KeyCode.Y))
+            {
+                EyeCorridorLaserPuzzle.RespawnAtEntrance = !EyeCorridorLaserPuzzle.RespawnAtEntrance;
+                _pz.Toast("重生点:" + (EyeCorridorLaserPuzzle.RespawnAtEntrance ? "密室入口" : "最近用过的石像"));
+            }
+            if (Input.GetKeyDown(KeyCode.N))
+            {
+                // 三档预设循环:相邻一尊 → 隔一尊 → 不限距离
+                float r = EyeCorridorLaserPuzzle.StatueReach;
+                if (r <= 0f)                          EyeCorridorLaserPuzzle.StatueReach = 4.6f;
+                else if (r < 6.5f)                    EyeCorridorLaserPuzzle.StatueReach = 8.8f;
+                else                                  EyeCorridorLaserPuzzle.StatueReach = 0f;
+                _pz.Toast("瞬移距离:" + (EyeCorridorLaserPuzzle.StatueReach <= 0f
+                        ? "不限(可从入口直接闪到最右,等于跳过谜题)"
+                        : EyeCorridorLaserPuzzle.StatueReach + " 单位"));
+            }
+            if (Input.GetKeyDown(KeyCode.T))
+            {
+                EyeCorridorLaserPuzzle.DebugZones = !EyeCorridorLaserPuzzle.DebugZones;
+                _pz.Toast("调试区可视化:" + (EyeCorridorLaserPuzzle.DebugZones ? "开" : "关"));
+            }
+            if (Input.GetKeyDown(KeyCode.P))
+            {
+                EyeCorridorLaserPuzzle.BeamPaused = !EyeCorridorLaserPuzzle.BeamPaused;
+                _pz.Toast("光柱:" + (EyeCorridorLaserPuzzle.BeamPaused ? "已暂停" : "继续横扫"));
+            }
+            // 眼珠摆幅:Z/X 调左,Shift+Z/X 调右(眼窝对瞳孔不对称,左右分开)
+            bool shift = Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift);
+            if (Input.GetKeyDown(KeyCode.Z))
+            {
+                if (shift) EyeCorridorLaserPuzzle.PupilSwingRight = Mathf.Max(0f, EyeCorridorLaserPuzzle.PupilSwingRight - 0.05f * d);
+                else       EyeCorridorLaserPuzzle.PupilSwingLeft  = Mathf.Max(0f, EyeCorridorLaserPuzzle.PupilSwingLeft  - 0.05f * d);
+            }
+            if (Input.GetKeyDown(KeyCode.X))
+            {
+                if (shift) EyeCorridorLaserPuzzle.PupilSwingRight = Mathf.Min(1.8f, EyeCorridorLaserPuzzle.PupilSwingRight + 0.05f * d);
+                else       EyeCorridorLaserPuzzle.PupilSwingLeft  = Mathf.Min(1.8f, EyeCorridorLaserPuzzle.PupilSwingLeft  + 0.05f * d);
+            }
+            // F:一键在「贴边不遮挡 / 轻微遮挡 / 明显遮挡」三档之间切换
+            if (Input.GetKeyDown(KeyCode.F))
+            {
+                _occlPreset = (_occlPreset + 1) % 3;
+                float over = _occlPreset == 0 ? -0.06f : (_occlPreset == 1 ? 0.12f : 0.26f);
+                EyeCorridorLaserPuzzle.PupilSwingLeft  = EyeCorridorLaserPuzzle.PupilEdgeSwingLeft  + over;
+                EyeCorridorLaserPuzzle.PupilSwingRight = EyeCorridorLaserPuzzle.PupilEdgeSwingRight + over;
+                _pz.Toast("眼珠摆幅:" + (over < 0f ? "贴边不遮挡" : (over < 0.2f ? "轻微遮挡" : "明显遮挡")) +
+                          $"  左{EyeCorridorLaserPuzzle.PupilSwingLeft:F2}/右{EyeCorridorLaserPuzzle.PupilSwingRight:F2}");
+            }
+            if (Input.GetKeyDown(KeyCode.V))
+            {
+                EyeCorridorLaserPuzzle.PupilFollow = !EyeCorridorLaserPuzzle.PupilFollow;
+                _pz.Toast("眼珠跟随光柱:" + (EyeCorridorLaserPuzzle.PupilFollow ? "开" : "关"));
+            }
+            if (Input.GetKeyDown(KeyCode.C))
+            {
+                EyeCorridorLaserPuzzle.HideBeamWhenShielded = !EyeCorridorLaserPuzzle.HideBeamWhenShielded;
+                _pz.Toast("闭眼时隐藏光柱:" + (EyeCorridorLaserPuzzle.HideBeamWhenShielded ? "开" : "关(始终可见)"));
+            }
+
+            // ── 黄铜眼:整体尺寸 / 位置(严格还原最初那版 bg_brass_eye 的基准 = 1.0 / (0,0)) ──
+            if (Input.GetKeyDown(KeyCode.Q) || Input.GetKeyDown(KeyCode.E))
+            {
+                float step = Input.GetKeyDown(KeyCode.Q) ? -0.05f * d : 0.05f * d;
+                EyeCorridorLaserPuzzle.EyeSizeMul =
+                    Mathf.Clamp(EyeCorridorLaserPuzzle.EyeSizeMul + step, 0.15f, 6f);
+                _pz.Toast($"黄铜眼尺寸 ×{EyeCorridorLaserPuzzle.EyeSizeMul:F2}  " +
+                          $"(宽 {EyeCorridorLaserPuzzle.EyeTargetW * EyeCorridorLaserPuzzle.EyeSizeMul:F2} 单位)");
+            }
+            if (Input.GetKeyDown(KeyCode.A) || Input.GetKeyDown(KeyCode.D))
+            {
+                float step = Input.GetKeyDown(KeyCode.A) ? -0.02f * d : 0.02f * d;
+                EyeCorridorLaserPuzzle.EyePosOffset.x += step;
+            }
+            if (Input.GetKeyDown(KeyCode.W) || Input.GetKeyDown(KeyCode.S))
+            {
+                float step = Input.GetKeyDown(KeyCode.W) ? 0.02f * d : -0.02f * d;
+                EyeCorridorLaserPuzzle.EyePosOffset.y += step;
+            }
+            if (Input.GetKeyDown(KeyCode.A) || Input.GetKeyDown(KeyCode.D) ||
+                Input.GetKeyDown(KeyCode.W) || Input.GetKeyDown(KeyCode.S))
+            {
+                var o = EyeCorridorLaserPuzzle.EyePosOffset;
+                _pz.Toast($"黄铜眼位置 {EyeCorridorLaserPuzzle.EyeCenterWorld.x + o.x:F3}," +
+                          $"{EyeCorridorLaserPuzzle.EyeCenterWorld.y + o.y:F3}  [WASD 移 · U 复位]");
+            }
+            if (Input.GetKeyDown(KeyCode.U))
+            {
+                EyeCorridorLaserPuzzle.EyeSizeMul = 1f;
+                EyeCorridorLaserPuzzle.EyePosOffset = Vector2.zero;
+                _pz.Toast("黄铜眼尺寸/位置已复位到最初那版 bg_brass_eye 的基准。");
+            }
+
+            // ── 动作 ──
+            if (Input.GetKeyDown(KeyCode.K)) _pz.DebugKill();
+            if (Input.GetKeyDown(KeyCode.R)) { _pz.DebugReset(); }
+            if (Input.GetKeyDown(KeyCode.I)) _pz.DebugRestartIntro();
+            if (Input.GetKeyDown(KeyCode.J)) { _pz.DebugPlayLidSweep(); _pz.Toast("播放一次眼睑开合动画。"); }
+            if (Input.GetKeyDown(KeyCode.B))
+            {
+                _eyesClosed = !_eyesClosed;
+                _pz.DebugSetEyesClosed(_eyesClosed);
+                _pz.Toast("黄铜眼:" + (_eyesClosed ? "闭上(瞳孔收成缝)" : "睁开"));
+            }
+            for (int i = 0; i < 7; i++)
+                if (Input.GetKeyDown(KeyCode.Alpha1 + i)) { _pz.DebugJumpToStatue(i); }
+
+            if (_hud != null && _showHud) _hud.text = BuildHudText();
+        }
+
+        // ── 系统 ──
+        void EnsureGameManager()
+        {
+            if (GameManager.Instance == null)
+            {
+                var go = new GameObject("GameManager");
+                go.AddComponent<GameManager>();
+            }
+        }
+
+        void BuildCamera()
+        {
+            if (Camera.main == null)
+            {
+                var go = new GameObject("Main Camera");
+                go.tag = "MainCamera";
+                var newCam = go.AddComponent<Camera>();
+                newCam.orthographic = true;
+                newCam.orthographicSize = 6f;
+                newCam.transform.position = new Vector3(0, 0, -10);
+            }
+            var cam = Camera.main;
+            cam.orthographic = true;
+            cam.orthographicSize = 6f;          // 12 单位图完整落进中间条带
+            cam.clearFlags = CameraClearFlags.SolidColor;
+            cam.backgroundColor = new Color(0.05f, 0.05f, 0.06f);
+            float barPct = LetterboxOverlay.BarHeightPct;
+            cam.rect = new Rect(0f, barPct, 1f, 1f - 2f * barPct);
+            if (cam.GetComponent<ClickInputManager>() == null)
+                cam.gameObject.AddComponent<ClickInputManager>();
+        }
+
+        void BuildRoomAndPlayer()
+        {
+            var room = SceneRoomBuilder.Build(SceneRoomBuilder.EyeCorridor);
+            room.name = "Room_" + Rooms.Chapter1_EyeCorridor;
+            float groundY = SceneRoomBuilder.EyeCorridor.groundY;
+
+            var player = PlayerBuilder.Build(GameState.CurrentEra, groundY,
+                                             EyeCorridorLaserPuzzle.SpawnX,
+                                             yOffsetOverride: PlayerBuilder.GetChapter1YOffset(GameState.CurrentEra));
+            if (player != null)
+            {
+                var pc = player.GetComponent<PlayerController>();
+                if (pc != null)
+                {
+                    pc.spriteFacesRight = false;   // 立绘默认朝左,这里让他朝右(往长廊深处走)
+                    var s = player.transform.localScale;
+                    s.x = Mathf.Abs(s.x) * -1f;
+                    player.transform.localScale = s;
+                    pc.SetControllable(true);
+                }
+            }
+            else Debug.LogError("[EyeCorridorDebug] 玩家没建出来(PlayerBuilder.Build 返回 null)。");
+
+            _pz = EyeCorridorLaserPuzzle.Build(room.transform);
+        }
+
+        // ── HUD ──
+        void BuildHud()
+        {
+            var go = new GameObject("~EyeCorridorDebugHUD");
+            var canvas = go.AddComponent<Canvas>();
+            canvas.renderMode = RenderMode.ScreenSpaceOverlay;
+            canvas.sortingOrder = 3000;      // 盖在红晕(900)/黑边(1000)/对话(1100)之上
+            var scaler = go.AddComponent<CanvasScaler>();
+            scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
+            scaler.referenceResolution = new Vector2(1920f, 1080f);
+            go.AddComponent<GraphicRaycaster>();
+
+            var tgo = new GameObject("Hint");
+            tgo.transform.SetParent(go.transform, false);
+            _hud = tgo.AddComponent<Text>();
+            _hud.font = GameFonts.Primary;
+            _hud.fontSize = 18;
+            _hud.color = new Color(1f, 0.92f, 0.7f, 1f);
+            _hud.alignment = TextAnchor.UpperLeft;
+            _hud.horizontalOverflow = HorizontalWrapMode.Overflow;
+            _hud.verticalOverflow = VerticalWrapMode.Overflow;
+            _hud.raycastTarget = false;
+            var rt = _hud.rectTransform;
+            rt.anchorMin = new Vector2(0f, 1f);
+            rt.anchorMax = new Vector2(0f, 1f);
+            rt.pivot = new Vector2(0f, 1f);
+            rt.anchoredPosition = new Vector2(24f, -18f);
+            rt.sizeDelta = new Vector2(1700f, 460f);
+
+            var shadow = tgo.AddComponent<Shadow>();
+            shadow.effectColor = new Color(0f, 0f, 0f, 0.9f);
+            shadow.effectDistance = new Vector2(1.5f, -1.5f);
+
+            _hud.enabled = _showHud;   // 默认不出现在画面上(按 G/H 唤出)
+        }
+
+        string BuildHudText()
+        {
+            var sb = new StringBuilder(1200);
+            bool grace = EyeCorridorLaserPuzzle.UseGraceMode;
+
+            sb.AppendLine("千眼回廊 · 躲避激光(青年线 PZ_04) · 调试场景    阶段:" + _pz.Phase);
+            sb.AppendLine(
+                $"光柱X {_pz.BeamX,7:F2}  方向{(_pz.BeamDir > 0 ? "→" : "←")}   " +
+                $"提尔X {_pz.PlayerX,7:F2}   " +
+                $"被照到 {(_pz.IsExposed ? "★是" : "否")}   在阴影 {(_pz.IsShielded ? "是" : "否")}");
+            sb.AppendLine(
+                grace
+                    ? $"★保命窗口 {_pz.LockLeft,5:F2}s / {EyeCorridorLaserPuzzle.GraceSeconds:F2}s" +
+                      $"{(_pz.LockLeft < EyeCorridorLaserPuzzle.GraceSeconds - 0.001f ? "  ← 倒计时中!" : "")}   " +
+                      $"离开光柱清零:{(EyeCorridorLaserPuzzle.GraceResetOnLeave ? "是" : "否")}"
+                    : $"累计暴露 {_pz.Exposure,5:F2}s / {EyeCorridorLaserPuzzle.GraceSeconds:F2}s   " +
+                      $"回退倍率 {EyeCorridorLaserPuzzle.ExposureDecay:F1}x");
+            sb.AppendLine(
+                $"可用石像 {_pz.StatuesLeft}/{_pz.StatueCount}   " +
+                $"石像一次性 {(EyeCorridorLaserPuzzle.StatueOnce ? "开" : "关")}   " +
+                $"重生点 {(EyeCorridorLaserPuzzle.RespawnAtEntrance ? "入口" : "最近石像")}   " +
+                $"瞬移 {(EyeCorridorLaserPuzzle.StatueReach <= 0f ? "不限距" : EyeCorridorLaserPuzzle.StatueReach + "单位")}");
+            sb.AppendLine("---------------------------------------------------------------");
+            float overL = EyeCorridorLaserPuzzle.PupilSwingLeft  - EyeCorridorLaserPuzzle.PupilEdgeSwingLeft;
+            float overR = EyeCorridorLaserPuzzle.PupilSwingRight - EyeCorridorLaserPuzzle.PupilEdgeSwingRight;
+            float cutL = Mathf.Max(0f, overL) * 100f, cutR = Mathf.Max(0f, overR) * 100f;
+            sb.AppendLine(
+                $"眼珠跟随 {(EyeCorridorLaserPuzzle.PupilFollow ? "开" : "关")} [V]   " +
+                $"左摆幅 {EyeCorridorLaserPuzzle.PupilSwingLeft:F2} (贴边 {EyeCorridorLaserPuzzle.PupilEdgeSwingLeft:F2})   " +
+                $"右摆幅 {EyeCorridorLaserPuzzle.PupilSwingRight:F2} (贴边 {EyeCorridorLaserPuzzle.PupilEdgeSwingRight:F2})   " +
+                "[ Z X / Shift+Z X ]");
+            sb.AppendLine(
+                "   极限遮挡: " +
+                (cutL <= 0.5f && cutR <= 0.5f
+                    ? "无(瞳孔完整滚到眼角)"
+                    : $"左 {cutL:F0}px / 右 {cutR:F0}px 被眼睑压住") +
+                "   [F] 贴边/轻遮/明遮 三档   " +
+                $"闭眼隐藏光柱 {(EyeCorridorLaserPuzzle.HideBeamWhenShielded ? "开" : "关")} [C]   " +
+                $"光柱可见 {_pz.BeamVisible:F2}   眼开合 {_pz.EyeOpen:F2}");
+            var eo = EyeCorridorLaserPuzzle.EyePosOffset;
+            sb.AppendLine(
+                $"黄铜眼 位置 ({EyeCorridorLaserPuzzle.EyeCenterWorld.x + eo.x:F3}," +
+                $"{EyeCorridorLaserPuzzle.EyeCenterWorld.y + eo.y:F3})   " +
+                $"尺寸 ×{EyeCorridorLaserPuzzle.EyeSizeMul:F2} " +
+                $"(宽 {EyeCorridorLaserPuzzle.EyeTargetW * EyeCorridorLaserPuzzle.EyeSizeMul:F2} 单位," +
+                $"基准 1.00 = 最初 bg_brass_eye 的 {EyeCorridorLaserPuzzle.EyeTargetW:F2})   " +
+                (_pz.LidFrameCount > 0
+                    ? $"眼睑帧 {_pz.LidFrameIndex}/{_pz.LidFrameCount - 1}   "
+                    : "眼睑帧:未接(静态遮挡层)   ") +
+                "[Q E 尺寸 · W S 上下 · A D 左右 · U 复位 · J 播一遍]");
+            sb.AppendLine(
+                $"光柱速度 {EyeCorridorLaserPuzzle.BeamSpeed:F1} [ ← → ]   " +
+                $"危险半宽 {EyeCorridorLaserPuzzle.BeamHalfWidth:F2} [ [ ] ]   " +
+                $"3秒窗口 {EyeCorridorLaserPuzzle.GraceSeconds:F2} [ - = ]   " +
+                $"阴影半宽 {EyeCorridorLaserPuzzle.ShadowHalfWidth:F2} [ , . ]   " +
+                $"石像冷却 {EyeCorridorLaserPuzzle.StatueCooldown:F1} [ ; ' ]");
+            sb.AppendLine(
+                $"瞬移距离 {(EyeCorridorLaserPuzzle.StatueReach <= 0f ? "不限" : EyeCorridorLaserPuzzle.StatueReach.ToString("F1") + " 单位")} [N]   " +
+                $"进度 x {_pz.PlayerX:F1} / 出口 {EyeCorridorLaserPuzzle.ExitX:F1}   " +
+                $"剩余石像 {_pz.StatuesLeft}/{_pz.StatueCount}");
+            sb.AppendLine(
+                "点地面=走  点石像=瞬移躲光  |  1-7 跳石像  K 强制死亡  R 重置  I 重播开场  " +
+                "P 暂停光柱" + (EyeCorridorLaserPuzzle.BeamPaused ? "(已暂停)" : "") +
+                "  T 判定区" + (EyeCorridorLaserPuzzle.DebugZones ? "(开)" : "(关)") +
+                "  J 播一遍开合" + (_pz.LidSweeping ? "(播放中)" : ""));
+            sb.AppendLine(
+                "M 判定模式" + (grace ? "(保命窗口)" : "(累计暴露)") +
+                "  L 离开清零  O 石像一次性  Y 重生点  N 瞬移距离  B 黄铜眼睁/闭  G 隐藏HUD" +
+                (_pz.LastToast.Length > 0 ? "\n最近提示: " + _pz.LastToast : ""));
+            return sb.ToString();
+        }
+    }
+}

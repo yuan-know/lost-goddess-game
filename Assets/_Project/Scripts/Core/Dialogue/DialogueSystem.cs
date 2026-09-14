@@ -80,7 +80,27 @@ namespace LostGoddess
               "武器室里挂满了锈蚀的兵器与巨大的圆盾,粗重的锁链与机械齿轮在阴影中默默伫立。传说这里存放着上古神兵征战时使用的兵器。" },
             { Dialogues.ch1_corridor_intro,
               "走廊两旁,矗立着整齐划一的雕像,它们沉默地守护着古老的秘密。拱门上无数只形态各异的眼睛正如鬼魅般时刻凝视着入侵者。你可以听见鬼魂在不远处的叹息声。" },
+
+            // ── 第一章 S05 千眼回廊 · 青年线(原文照搬自《章一_三线整合程序脚本表_v0_3》02表 N05-Y-010~090) ──
+            { Dialogues.ch1_eye_enter,
+              "提尔走进一条延伸向深处的黑色长廊。灰黑色的页岩表面,密密麻麻嵌着无数只灰黑色的石眼,像凝固的蛇瞳一样。" },
+            { Dialogues.ch1_eye_monk_appear,
+              "一个半透明的盲眼僧侣幽灵从走廊尽头的阴影中浮现。他没有眼睛,两个眼眶是深深的凹陷,空洞而平静。" },
+            { Dialogues.ch1_eye_monk_01,
+              "年轻的旅人,前方注视着一切浮躁的生灵。顶上那只黄铜眼扫出的光柱,比刀剑更锋利。只有在神像的庇护下,石眼才会暂时闭上。若你只想用腿脚莽撞闯关,那就迈好你脚下的每一步。" },
+            { Dialogues.ch1_eye_tir_01,   "装神弄鬼。不就是躲个光吗?" },
+            { Dialogues.ch1_eye_start_hint,
+              "(顶上的黄铜眼开始缓缓摆动——光柱扫过来之前,点长廊里的兜帽石像,瞬移进它的阴影。)" },
+            { Dialogues.ch1_eye_monk_02,  "你跑得还算快吧。哎……赐予你这符文,愿神启迪你的心灵。" },
+            { Dialogues.ch1_eye_reward,   "获得符文【ᚱ Raidho · 旅程】" },
+            { Dialogues.ch1_eye_tir_02,   "这个是Raidho?旅程……这些符文到底有什么用。神神鬼鬼的……" },
+            { Dialogues.ch1_eye_death,    "目困莽夫,身陷焦土。" },
+            { Dialogues.ch1_eye_respawn,  "见影即止,避瞳而行。" },
         };
+
+        /// <summary>取对白原文(供需要自己决定呈现方式的调用方,如千眼回廊调试场景可切换是否带立绘)。</summary>
+        public static string GetText(string dialogueId)
+            => _table.TryGetValue(dialogueId, out var t) ? t : dialogueId;
 
         static DialogueUI _ui;
 

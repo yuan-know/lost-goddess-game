@@ -416,6 +416,39 @@ namespace LostGoddess.Content
             bgNearSprite = "",
         };
 
+        /// <summary>【千眼回廊 · S05】—— 章一三线整合新表的 S05(盲眼僧侣守关)。
+        ///  美术与"怨灵追逐长廊"共用同一份(石眼密布的页岩墙 + 兜帽石像壁龛),
+        ///  所以 resourceFolderOverride 指向 ChaseCorridor,不复制美术、不重命名资产。
+        ///  几何沿用已实机调过的那套:世界宽 34、groundY=-5.76。
+        ///  遮眼/闭眼表现由 EyeCorridorLaserPuzzle 做在黄铜眼分层上(bg_eye_shell/bg_eye_pupil/眼睑),
+        ///  不切整张底图 —— bg_closed.png 只是 bg_full 的整体压暗版(×0.399),换了会让整屏变暗。
+        ///  ★ 黄金瞳的**世界尺寸/位置基准**写在 EyeCorridorLaserPuzzle 里(EyeScale/EyeCenterWorld):
+        ///    还原最初那版 bg_brass_eye 的 alpha 包围盒 px(1649..1736,133..187) = 0.87×0.54 @(-0.075,4.40)。
+        ///    分层素材是 525×380 的裁剪框,靠 ~eye_root 缩放到位 —— 别直接把素材尺寸当世界尺寸用。</summary>
+        ///  2026-09-14 玩法重做:mid 层换成美术新给的 **拱门暗影遮罩 bg_gate_shadow.png**
+        ///  (3400×1200 与 bg_full 同格,PPU100/BottomCenter,纯半透明黑 alpha≈100/255),
+        ///  直接叠在底图上就表示"石像之间的拱门是暗处" —— 也就是新玩法的 8 个安全点。
+        ///  铜眼改回最初那版单片贴图 bg_brass_eye(不再有眼珠转动/眼睑开合)。
+        ///  ★ 铜眼的世界尺寸/位置基准写在 EyeCorridorLaserPuzzle(EyeCenterWorld):还原最初那版
+        ///    bg_brass_eye 的 alpha 包围盒 px(1649..1736,133..187) = 0.87×0.54 @(-0.075,4.40)。</summary>
+        public static readonly SceneDef EyeCorridor = new SceneDef
+        {
+            roomName = "EyeCorridor",
+            resourceFolderOverride = "ChaseCorridor",
+            bgPixelWidth = 3400f,
+            bgPixelHeight = 1200f,
+            bgPPU = 100f,
+            // 与 ChaseCorridor 同一张画、同一条地平线(用户实机调过:再低"一点点" → gfb=0.020)
+            groundFromBottom = 0.020f,
+            groundY = -5.76f,
+            parallaxFar = 0.00f,
+            parallaxMid = 0.00f,
+            parallaxNear = 0.00f,
+            bgFarSprite = "bg_full",
+            bgMidSprite = "bg_gate_shadow",   // 拱门暗影 = 安全点(新玩法核心美术)
+            bgNearSprite = "",
+        };
+
         /// <summary>按定义构建场景:三层背景 + WalkableArea + 相机跟随。返回根节点。</summary>
         public static GameObject Build(SceneDef def)
         {

@@ -88,8 +88,20 @@ tools/ai_video/_backup_*/
 tools/ai_video/_diag/*.png
 tools/ai_video/_*.png
 
+# ===== 千眼回廊 黄铜眼(眼睑开合序列帧) =====
+# AI 视频抽出的 71 张原始帧(14MB):素材源,保留在本地;成品 eye_lid_XX.png 已在
+# Assets/_Project/Resources/Scenes/ChaseCorridor/EyeLid/ 里入库,可由
+# tools/eye_lid_frames.py + 原始 zip 重新生成。
+tools/_ai_eye_lid_frames/
+
 # Unity 动画调试备份
 *.bak.anim
 
 # WorkBuddy 工作区数据(本地记忆,不入库)
 .workbuddy/
+
+# 逐帧立绘归一化的原始帧备份(31MB;原图在 git 历史里,这里只是本地安全网)
+tools/_ai_frames_backup/
+
+# 行走帧横向比例校正前的备份(纵向已归一化、横向未校正的中间态)
+tools/_walk_aspect_backup/

@@ -25,6 +25,10 @@ namespace LostGoddess
         public const string Prologue_DoorOpen        = "prologue_door_open";         // 大门开启
         public const string Prologue_DeathCutscene   = "prologue_death_cutscene";    // 剧情杀已播
         public const string Achievement_ReturnToPast = "achievement_return_to_past"; // 成就【重返过去】
+
+        // ── 章一三线整合:千眼回廊 · 躲避激光(新表 N05-Y-010~090 / PZ_04) ──
+        public const string Ch1_EyeIntroDone  = "chapter1_eye_intro_done";   // 长廊进场独白已播
+        public const string Ch1_EyePZ04Solved = "chapter1_eye_pz04_solved";  // 躲避激光谜题已解开
     }
 
     /// <summary>物品 id。snake_case。</summary>
@@ -85,6 +89,8 @@ namespace LostGoddess
         public const string Chapter1_DiningHall    = "Chapter1_DiningHall";    // 第一章 餐厅
         public const string Chapter1_WeaponsRoom   = "Chapter1_WeaponsRoom";   // 第一章 武器室
         public const string Chapter1_ChaseCorridor = "Chapter1_ChaseCorridor"; // 第一章 怨灵追逐长廊
+        // ── 章一三线整合(新表 S05):千眼回廊 · 躲避激光小游戏 ──
+        public const string Chapter1_EyeCorridor   = "Chapter1_EyeCorridor";   // 第一章 S05 千眼回廊
     }
 
     /// <summary>对白/旁白 id。命名:prologue_&lt;幕&gt;_&lt;序&gt;。</summary>
@@ -145,6 +151,18 @@ namespace LostGoddess
         public const string ch1_dining_intro   = "ch1_dining_intro";   // 餐厅:"曾经盛极一时的奢华盛宴……"
         public const string ch1_weapons_intro  = "ch1_weapons_intro";  // 武器室:"武器室里挂满了锈蚀的兵器……"
         public const string ch1_corridor_intro = "ch1_corridor_intro"; // 长廊:"走廊两旁,矗立着整齐划一的雕像……"
+
+        // ── 第一章 S05 千眼回廊 · 青年线(台词原文见《章一_三线整合程序脚本表_v0_3》02表 N05-Y-xxx) ──
+        public const string ch1_eye_enter      = "ch1_eye_enter";      // N05-Y-010 旁白:走进黑色长廊
+        public const string ch1_eye_monk_appear= "ch1_eye_monk_appear";// N05-Y-030 旁白:盲眼僧侣浮现
+        public const string ch1_eye_monk_01    = "ch1_eye_monk_01";    // N05-Y-040 盲僧:黄铜眼光柱/神像庇护
+        public const string ch1_eye_tir_01     = "ch1_eye_tir_01";     // N05-Y-050 提尔:"不就是躲个光吗?"
+        public const string ch1_eye_start_hint = "ch1_eye_start_hint"; // N05-Y-060 系统:玩法提示(非剧情文案)
+        public const string ch1_eye_monk_02    = "ch1_eye_monk_02";    // N05-Y-070 盲僧:你跑得还算快吧
+        public const string ch1_eye_reward     = "ch1_eye_reward";     // N05-Y-080 获得符文【ᚱ Raidho · 旅程】
+        public const string ch1_eye_tir_02     = "ch1_eye_tir_02";     // N05-Y-090 提尔:"这个是Raidho?"
+        public const string ch1_eye_death      = "ch1_eye_death";      // D_02 判词:目困莽夫,身陷焦土
+        public const string ch1_eye_respawn    = "ch1_eye_respawn";    // D_02 重生引导:见影即止,避瞳而行
     }
 
     /// <summary>音效/音乐 clip 名(对应 Audio 文件夹资源名)。</summary>
@@ -168,6 +186,13 @@ namespace LostGoddess
         public const string pottery_break   = "sfx_pottery_break";   // 陶罐打碎
         public const string mechanism_rumble = "sfx_mechanism_rumble"; // 机械轰鸣(大门)
         public const string dark_fog_swell   = "sfx_dark_fog_swell";   // 黑雾涌动
+
+        // ── 千眼回廊 · 躲避激光(音频资源未到位时 AudioManager 只打一行提示,不报错) ──
+        public const string eye_beam_hum     = "sfx_eye_beam_hum";     // 黄铜眼光柱低鸣(循环感)
+        public const string eye_lock_warn    = "sfx_eye_lock_warn";    // 被光柱锁定 3 秒倒计时预警
+        public const string eye_burn         = "sfx_eye_burn";         // 灼烧死亡
+        public const string eye_shadow       = "sfx_eye_shadow";       // 瞬移入阴影 / 石眼闭合
+        public const string eye_rune         = "sfx_eye_rune";         // 符文获得
     }
 
     public static class Bgm
