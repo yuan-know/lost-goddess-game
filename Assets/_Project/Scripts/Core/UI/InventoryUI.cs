@@ -1,15 +1,24 @@
 // ============================================================================
-//  InventoryUI.cs —— 背包UI面板（2026-07-19）
+//  InventoryUI.cs —— 背包UI面板（2026-07-19 建；2026-09-14 换成新版格子美术）
 //  功能：
 //    · 屏幕右边缘居中显示背包按钮
 //    · 点击打开/关闭背包面板
 //    · 显示当前拥有的所有道具（带图标）
-//    · 点击道具可选中/取消选中
+//    · 点击道具可选中/取消选中；双击弹「是否使用该道具」
 //  美术资源：
-//    · backpack_icon.png - 背包按钮图标
-//    · slot_empty.png - 空槽位背景
-//    · backpack_grid.png - 背包网格背景（可选）
-//    · Icons/*.png - 各道具图标
+//    · backpack_icon.png      - 背包按钮图标
+//    · bag_panel_v2.png       - 背包面板底图(4x4 格,来自 背包空白格子.psd)
+//    · Icons/*.png            - 各道具图标
+//
+//  ★ 2026-09-14 改版要点：
+//    1) 旧版把 slot_empty.png(3400x1200) **拉伸填满**中间条带,槽位用 4 组硬编码像素
+//       定位。新底图 1121x908 里背包只占画布一部分,再拉伸会整体变形,
+//       所以改成「按高度等比缩放 + 居中」。
+//    2) 所有格位/图标尺寸统一由 InventoryPanelLayout 算 —— 与调试场景
+//       (Scenes/InventoryDebug.unity + InventoryDebugBootstrap) 走**同一份**代码,
+//       调试场景里调的就是游戏里生效的值。
+//    3) 条带高度改用 LetterboxOverlay.BarHeightPct(旧版这里硬编码 0.2018,
+//       与 LetterboxOverlay 的 0.1863 不一致 → 面板与黑边对不上)。
 // ============================================================================
 
 using System.Collections.Generic;
@@ -25,22 +34,16 @@ namespace LostGoddess
         // UI组件
         GameObject _backpackButton;      // 右侧背包按钮
         GameObject _inventoryPanel;      // 背包面板
+        GameObject _bagUIGo;             // 中间条带里的背包容器(按高度等比缩放)
         Transform _itemsContainer;       // 道具容器
+        Image _dimImage;                 // 全屏灰暗遮罩
         List<InventorySlot> _slots = new List<InventorySlot>();
 
-        const int MaxSlots = 16;         // 2026-07-24 参考图为 4列×4行 = 16 格
+        const int MaxSlots = InventoryPanelLayout.SlotCount;   // 4x4 = 16 格
         bool _isOpen = false;
 
-        // 2026-07-24 背包槽位按参考图(背包空白格子.png)红色格子像素精准定位。
-        //   slot_empty.png 3400×1200 拉伸填满 BagUI(1920×644.11):
-        //   scaleX=1920/3400=0.56471, scaleY=644.11/1200=0.53676。
-        //   下列值 = 红色格子中心像素 × scale,单位为 BagUI 参考分辨率下的 px。
-        static readonly float[] kSlotColX = { 779.3f, 884.0f, 994.2f, 1101.5f }; // 距 BagUI 左边缘
-        static readonly float[] kSlotRowY = { 179.0f, 277.2f, 379.5f, 477.7f };  // 距 BagUI 顶部
-        const float kSlotW = 86f;   // 格子宽(≈154img*0.56471)
-        const float kSlotH = 82f;   // 格子高(≈154img*0.53676)
-
         public static InventoryUI Instance => _instance;
+        public bool IsOpen => _isOpen;
 
         public static InventoryUI CreateAttached()
         {
@@ -94,33 +97,22 @@ namespace LostGoddess
                 Debug.Log("[InventoryUI] 创建了EventSystem");
             }
 
+            float barPct = LetterboxOverlay.BarHeightPct;
+
             // ========== 1. 背包按钮(中间场景条带的右上角,letterbox 内) ==========
-            //   2026-07-20 letterbox 后,把背包按钮放到中间场景右上角,
-            //   避免按钮被上方黑边压住或与画面无关地漂在屏幕边缘。
-            //   中间条带垂直范围:y ∈ [barPct, 1-barPct] = [0.2018, 0.7982],
-            //   右上锚点 = (1, 1 - barPct) = (1, 0.7982),pivot=(1,1) 让按钮悬挂在场景顶部之下。
             _backpackButton = new GameObject("BackpackButton");
             _backpackButton.transform.SetParent(transform, false);
 
-            const float BarPct = 0.2018f;   // 与 LetterboxOverlay.BarHeightPct 一致
             var btnRt = _backpackButton.AddComponent<RectTransform>();
-            btnRt.anchorMin = new Vector2(1, 1 - BarPct);
-            btnRt.anchorMax = new Vector2(1, 1 - BarPct);
+            btnRt.anchorMin = new Vector2(1, 1 - barPct);
+            btnRt.anchorMax = new Vector2(1, 1 - barPct);
             btnRt.pivot = new Vector2(1, 1);
             btnRt.anchoredPosition = new Vector2(-30, -30);  // 距场景右上角 30px 内边距
             btnRt.sizeDelta = new Vector2(120, 120);
 
             // 背包图标
             var btnImg = _backpackButton.AddComponent<Image>();
-            var btnSprite = Resources.Load<Sprite>("UI/Inventory/backpack_icon");
-            if (btnSprite == null)
-            {
-                // 如果是Texture类型，转换为Sprite
-                var tex = Resources.Load<Texture2D>("UI/Inventory/backpack_icon");
-                if (tex != null)
-                    btnSprite = Sprite.Create(tex, new Rect(0, 0, tex.width, tex.height), new Vector2(0.5f, 0.5f));
-            }
-
+            var btnSprite = LoadSprite("UI/Inventory/backpack_icon");
             if (btnSprite != null)
             {
                 btnImg.sprite = btnSprite;
@@ -145,14 +137,11 @@ namespace LostGoddess
                 ToggleInventory();
             });
 
-            Debug.Log("[InventoryUI] 背包按钮已创建");
-
-            // 2026-07-21 序幕设定:第 0 幕的老人还没捡到背包,序幕开场默认隐藏背包 UI(按钮 + 面板)。
-            //   触发 InventoryUI.SetVisible(true) 才出现——一般由拾取背包事件 (PickupBackpack) 调用。
-            //   已经存在物品(如从 Load 进入或跳过序幕)时会跳过默认隐藏,见 SetVisible 语义。
+            // 2026-07-21 序幕设定:第 0 幕的老人还没捡到背包,序幕开场默认隐藏背包 UI。
+            //   触发 SetVisible(true) 才出现——一般由拾取背包事件 (PickupBackpack) 调用。
             _backpackButton.SetActive(false);
 
-            // ========== 2. 背包面板（全屏显示，半透明背景） ==========
+            // ========== 2. 背包面板（全屏显示，灰暗遮罩 + 中间条带上的背包图） ==========
             _inventoryPanel = new GameObject("InventoryPanel");
             _inventoryPanel.transform.SetParent(transform, false);
 
@@ -162,7 +151,7 @@ namespace LostGoddess
             panelRt.offsetMin = Vector2.zero;
             panelRt.offsetMax = Vector2.zero;
 
-            // 半透明黑色遮罩背景（让游戏画面变暗但仍可见）
+            // 半透明黑色遮罩背景（美术 PSD 的「图层 1」= 纯黑 153/255 = 0.6）
             var dimBgGo = new GameObject("DimBackground");
             dimBgGo.transform.SetParent(_inventoryPanel.transform, false);
             var dimBgRt = dimBgGo.AddComponent<RectTransform>();
@@ -171,58 +160,39 @@ namespace LostGoddess
             dimBgRt.offsetMin = Vector2.zero;
             dimBgRt.offsetMax = Vector2.zero;
 
-            var dimBg = dimBgGo.AddComponent<Image>();
-            dimBg.color = new Color(0, 0, 0, 0.75f);  // 半透明黑色，游戏画面可透出
-            dimBg.raycastTarget = true;  // 阻止点击穿透
+            _dimImage = dimBgGo.AddComponent<Image>();
+            _dimImage.raycastTarget = true;  // 阻止点击穿透
 
-            // 背包UI容器(2026-07-21 修:只覆盖中间场景条带,不再撑满全屏)
-            //   slot_empty.png 是 3400×1200(≈2.83:1),中间条带 1920×644(≈2.98:1),
-            //   宽高比几乎一致,直接拉伸填满中间条带即可,视觉不再压扁。
-            //   letterbox 是独立 canvas(order 1000)遮在最上,不会被这块 UI 挤掉。
-            var bagUIGo = new GameObject("BagUI");
-            bagUIGo.transform.SetParent(_inventoryPanel.transform, false);
-            var bagUIRt = bagUIGo.AddComponent<RectTransform>();
-            bagUIRt.anchorMin = new Vector2(0, BarPct);
-            bagUIRt.anchorMax = new Vector2(1, 1 - BarPct);
-            bagUIRt.offsetMin = Vector2.zero;
-            bagUIRt.offsetMax = Vector2.zero;
+            // 背包底图容器:锚在屏幕正中(条带是上下对称的 ⇒ 条带中心 = 屏幕中心),
+            //   pivot=中心,尺寸 = PanelDisplaySize(按高度等比,不再拉伸变形)
+            _bagUIGo = new GameObject("BagUI");
+            _bagUIGo.transform.SetParent(_inventoryPanel.transform, false);
+            var bagUIRt = _bagUIGo.AddComponent<RectTransform>();
+            bagUIRt.anchorMin = new Vector2(0.5f, 0.5f);
+            bagUIRt.anchorMax = new Vector2(0.5f, 0.5f);
+            bagUIRt.pivot = new Vector2(0.5f, 0.5f);
+            bagUIRt.anchoredPosition = Vector2.zero;
 
-            // 使用slot_empty作为背包UI（拉伸模式）
-            var panelBg = bagUIGo.AddComponent<Image>();
-            var bagUISprite = Resources.Load<Sprite>("UI/Inventory/slot_empty");
-            if (bagUISprite == null)
-            {
-                var tex = Resources.Load<Texture2D>("UI/Inventory/slot_empty");
-                if (tex != null)
-                {
-                    bagUISprite = Sprite.Create(tex, new Rect(0, 0, tex.width, tex.height), new Vector2(0.5f, 0.5f));
-                    Debug.Log("[InventoryUI] 使用slot_empty纹理创建背包UI: " + tex.width + "x" + tex.height);
-                }
-            }
-
+            var panelBg = _bagUIGo.AddComponent<Image>();
+            var bagUISprite = LoadSprite(InventoryPanelLayout.PanelResourcePath);
             if (bagUISprite != null)
             {
                 panelBg.sprite = bagUISprite;
-                panelBg.type = Image.Type.Simple;  // 简单拉伸模式，填充整个屏幕
-                panelBg.preserveAspect = false;  // 不保持宽高比，拉伸填充
+                panelBg.type = Image.Type.Simple;
+                panelBg.preserveAspect = false;   // 尺寸我们自己算(已保持宽高比),不用它再算一次
                 panelBg.raycastTarget = false;
-                panelBg.color = new Color(1f, 1f, 1f, 1f);  // 完全不透明显示背包图
-                Debug.Log("[InventoryUI] 背包UI(slot_empty)加载成功");
+                panelBg.color = Color.white;
+                Debug.Log($"[InventoryUI] 背包底图加载成功 {bagUISprite.rect.width}x{bagUISprite.rect.height}");
             }
             else
             {
-                // 兜底：棕色背景
                 panelBg.color = new Color(0.3f, 0.25f, 0.2f, 0.95f);
-                Debug.LogWarning("[InventoryUI] slot_empty加载失败，使用兜底背景");
+                Debug.LogWarning($"[InventoryUI] 找不到 Resources/{InventoryPanelLayout.PanelResourcePath},用兜底背景");
             }
 
-            // 标题文本（移除，因为背包UI已经是完整设计）
-            // 道具容器不需要单独的标题
-
-            // 道具容器(2026-07-24 改为绝对像素定位,填满整个 BagUI,
-            //   每个槽位用 kSlotColX/kSlotRowY 在其内部精准落位,不再用 GridLayoutGroup)
+            // 道具容器:撑满 BagUI;每个槽位用 InventoryPanelLayout 的逐格中心定位
             var containerGo = new GameObject("ItemsContainer");
-            containerGo.transform.SetParent(bagUIGo.transform, false);
+            containerGo.transform.SetParent(_bagUIGo.transform, false);
             var containerRt = containerGo.AddComponent<RectTransform>();
             containerRt.anchorMin = Vector2.zero;   // 撑满 BagUI
             containerRt.anchorMax = Vector2.one;
@@ -230,21 +200,18 @@ namespace LostGoddess
             containerRt.offsetMax = Vector2.zero;
             _itemsContainer = containerGo.transform;
 
-            Debug.Log("[InventoryUI] 道具容器已创建(绝对像素定位 4x4)");
-
-            // 关闭按钮(2026-07-21 修:锚到中间场景右上角,不再是屏幕右上;尺寸加大)
-            //   anchor = (1, 1-BarPct) → 中间条带的右上角,pivot=(1,1) 让按钮悬挂在场景顶部之下
+            // 关闭按钮(锚到中间场景右上角)
             var closeBtnGo = new GameObject("CloseButton");
             closeBtnGo.transform.SetParent(_inventoryPanel.transform, false);
             var closeBtnRt = closeBtnGo.AddComponent<RectTransform>();
-            closeBtnRt.anchorMin = new Vector2(1, 1 - BarPct);
-            closeBtnRt.anchorMax = new Vector2(1, 1 - BarPct);
+            closeBtnRt.anchorMin = new Vector2(1, 1 - barPct);
+            closeBtnRt.anchorMax = new Vector2(1, 1 - barPct);
             closeBtnRt.pivot = new Vector2(1, 1);
-            closeBtnRt.anchoredPosition = new Vector2(-40, -40);  // 距场景右上角 40px 内边距
-            closeBtnRt.sizeDelta = new Vector2(140, 140);  // 加大到 140×140
+            closeBtnRt.anchoredPosition = new Vector2(-40, -40);
+            closeBtnRt.sizeDelta = new Vector2(140, 140);
 
             var closeBtnImg = closeBtnGo.AddComponent<Image>();
-            closeBtnImg.color = new Color(0.8f, 0.2f, 0.2f, 0.9f);  // 红色背景
+            closeBtnImg.color = new Color(0.8f, 0.2f, 0.2f, 0.9f);
 
             var closeBtnText = new GameObject("Text");
             closeBtnText.transform.SetParent(closeBtnGo.transform, false);
@@ -255,9 +222,9 @@ namespace LostGoddess
             closeTxtRt.offsetMax = Vector2.zero;
 
             var closeTxt = closeBtnText.AddComponent<Text>();
-            closeTxt.text = "×";  // 使用×符号
+            closeTxt.text = "×";
             closeTxt.font = GameFonts.Primary;
-            closeTxt.fontSize = 90;  // 2026-07-21 加大字号,配合更大的按钮
+            closeTxt.fontSize = 90;
             closeTxt.color = Color.white;
             closeTxt.alignment = TextAnchor.MiddleCenter;
             closeTxt.fontStyle = FontStyle.Bold;
@@ -266,58 +233,52 @@ namespace LostGoddess
             closeBtn.targetGraphic = closeBtnImg;
             closeBtn.onClick.AddListener(() => ToggleInventory());
 
-            // 创建槽位
+            // 创建槽位(位置/尺寸在 LayoutAll() 里按当前参数统一算)
             for (int i = 0; i < MaxSlots; i++)
-            {
-                var slot = CreateSlot(i);
-                _slots.Add(slot);
-            }
+                _slots.Add(CreateSlot(i));
 
-            // 2026-07-21 底部常驻背包描述条(与"字幕"同高度,黑底白字)。
-            //   放在 _inventoryPanel 下、bagUI 之外,盖在中间条带底部;不影响操作,
-            //   面板关闭时随 _inventoryPanel 一起 SetActive(false) 隐藏。
+            // 底部常驻背包描述条
             BuildDescriptionBar(_inventoryPanel.transform);
+
+            LayoutAll();
 
             _inventoryPanel.SetActive(false);
         }
 
-        /// <summary>底部常驻背包描述条(2026-07-21)。放到下方黑边区,与对话字幕同位置。
+        /// <summary>底部常驻背包描述条(放到下方黑边区,与对话字幕同位置)。
         /// 关键:InventoryUI canvas order=300 会被 Letterbox(1000)盖住,所以给描述条单独挂
-        /// 子 Canvas 覆写 order=1150(高于 letterbox 的 1000,低于 dialogue 的 1200 特写)。</summary>
+        /// 子 Canvas 覆写 order=1150(高于 letterbox 的 1000,低于 dialogue 的 1200)。</summary>
         void BuildDescriptionBar(Transform parent)
         {
+            float barPct = LetterboxOverlay.BarHeightPct;
+
             var descGo = new GameObject("BackpackDescription");
             descGo.transform.SetParent(parent, false);
 
-            // 独立子 Canvas 覆写 sortingOrder,越过 letterbox 黑边
             var subCanvas = descGo.AddComponent<Canvas>();
             subCanvas.overrideSorting = true;
             subCanvas.sortingOrder = 1150;   // > Letterbox 1000, 与 DialogueSystem 1100 同层
             descGo.AddComponent<GraphicRaycaster>();
 
-            // 位置:锚在屏幕底部,高度 = 下方黑边高度(与字幕条完全一致)
             var rt = descGo.GetComponent<RectTransform>();
             if (rt == null) rt = descGo.AddComponent<RectTransform>();
             rt.anchorMin = new Vector2(0, 0);
             rt.anchorMax = new Vector2(1, 0);
             rt.pivot = new Vector2(0.5f, 0);
-            rt.sizeDelta = new Vector2(0, 1080f * 0.2018f);   // 与 LetterboxOverlay.BarHeightPct 同
+            rt.sizeDelta = new Vector2(0, 1080f * barPct);
             rt.anchoredPosition = Vector2.zero;
 
-            // 不加底色 —— 黑边本身就是底
-            // 文本
             var txtGo = new GameObject("Text");
             txtGo.transform.SetParent(descGo.transform, false);
             var txt = txtGo.AddComponent<Text>();
             txt.text = "容量很大的旧皮革背包,带有可照明的油灯。结实耐用,可在此查看你收集的所有的东西。";
             txt.font = GameFonts.Primary;
-            txt.fontSize = 30;                    // 与 DialogueSystem 字幕 fontSize=30 一致
-            txt.color = new Color(1f, 0.96f, 0.9f);  // 与字幕相同的暖白
+            txt.fontSize = 30;
+            txt.color = new Color(1f, 0.96f, 0.9f);
             txt.alignment = TextAnchor.MiddleCenter;
             txt.horizontalOverflow = HorizontalWrapMode.Wrap;
             txt.verticalOverflow = VerticalWrapMode.Overflow;
             txt.raycastTarget = false;
-            // 描边(和字幕保持一致的可读性)
             var outline = txtGo.AddComponent<UnityEngine.UI.Outline>();
             outline.effectColor = new Color(0, 0, 0, 0.9f);
             outline.effectDistance = new Vector2(1.5f, -1.5f);
@@ -334,33 +295,41 @@ namespace LostGoddess
             var slotGo = new GameObject($"Slot_{index}");
             slotGo.transform.SetParent(_itemsContainer, false);
 
-            // 2026-07-24 绝对像素定位:锚到容器左上角,pivot=中心,
-            //   anchoredPosition = (列中心X, -行中心Y),尺寸 = 单格大小。
-            int col = index % 4;
-            int row = index / 4;
+            // 锚到容器左上角,pivot=中心;anchoredPosition/sizeDelta 由 LayoutAll() 统一设置
             var slotRt = slotGo.AddComponent<RectTransform>();
             slotRt.anchorMin = new Vector2(0, 1);
             slotRt.anchorMax = new Vector2(0, 1);
             slotRt.pivot = new Vector2(0.5f, 0.5f);
-            slotRt.anchoredPosition = new Vector2(kSlotColX[col], -kSlotRowY[row]);
-            slotRt.sizeDelta = new Vector2(kSlotW, kSlotH);
 
-            // 槽位不需要背景（背包UI已经有网格了）
-            // 只需要一个透明的Image接收点击
+            // 槽位不需要背景（背包底图已经有格子了）,只要一个几乎透明的 Image 接点击
             var slotImg = slotGo.AddComponent<Image>();
-            slotImg.color = new Color(0, 0, 0, 0.01f);  // 几乎透明，但能接收点击
+            slotImg.color = new Color(0, 0, 0, 0.01f);
+            slotImg.raycastTarget = true;
 
-            // 道具图标(略小于格子,四周留 6px 内边距,视觉上不顶格)
+            // 调试用中心点(默认关,SetSlotDebugOutline 打开):看道具是否落在格子正中
+            var dotGo = new GameObject("DebugCenter");
+            dotGo.transform.SetParent(slotGo.transform, false);
+            var dotRt = dotGo.AddComponent<RectTransform>();
+            dotRt.anchorMin = new Vector2(0.5f, 0.5f);
+            dotRt.anchorMax = new Vector2(0.5f, 0.5f);
+            dotRt.pivot = new Vector2(0.5f, 0.5f);
+            dotRt.anchoredPosition = Vector2.zero;
+            dotRt.sizeDelta = new Vector2(7f, 7f);
+            var dotImg = dotGo.AddComponent<Image>();
+            dotImg.color = new Color(0.15f, 0.85f, 1f, 0.95f);
+            dotImg.raycastTarget = false;
+            dotGo.SetActive(false);
+
+            // 道具图标:锚到槽位中心,尺寸/偏移由 LayoutAll() 按内容框算
             var iconGo = new GameObject("Icon");
             iconGo.transform.SetParent(slotGo.transform, false);
             var iconRt = iconGo.AddComponent<RectTransform>();
-            iconRt.anchorMin = Vector2.zero;
-            iconRt.anchorMax = Vector2.one;
-            iconRt.offsetMin = new Vector2(6, 6);
-            iconRt.offsetMax = new Vector2(-6, -6);
+            iconRt.anchorMin = new Vector2(0.5f, 0.5f);
+            iconRt.anchorMax = new Vector2(0.5f, 0.5f);
+            iconRt.pivot = new Vector2(0.5f, 0.5f);
 
             var iconImg = iconGo.AddComponent<Image>();
-            iconImg.preserveAspect = true;  // 保持宽高比
+            iconImg.preserveAspect = false;   // 尺寸已按内容框算好,不需要它再算
             iconImg.raycastTarget = false;
 
             // 选中高亮边框
@@ -373,7 +342,7 @@ namespace LostGoddess
             highlightRt.offsetMax = Vector2.zero;
 
             var highlightImg = highlightGo.AddComponent<Image>();
-            highlightImg.color = new Color(1f, 0.8f, 0.2f, 0.5f);  // 金色高亮
+            highlightImg.color = new Color(1f, 0.8f, 0.2f, 0.5f);
             highlightImg.raycastTarget = false;
             highlightGo.SetActive(false);
 
@@ -385,8 +354,11 @@ namespace LostGoddess
             var slot = new InventorySlot
             {
                 slotObject = slotGo,
+                iconObject = iconGo,
                 iconImage = iconImg,
                 highlightObject = highlightGo,
+                slotImage = slotImg,
+                debugCenter = dotGo,
                 button = slotBtn,
                 itemId = null
             };
@@ -396,13 +368,17 @@ namespace LostGoddess
             return slot;
         }
 
-        void ToggleInventory()
+        void ToggleInventory() => SetOpen(!_isOpen);
+
+        /// <summary>外部(pickup 事件 / 调试场景)也可直接开关。</summary>
+        public void SetOpen(bool open)
         {
-            _isOpen = !_isOpen;
+            _isOpen = open;
             _inventoryPanel.SetActive(_isOpen);
 
             if (_isOpen)
             {
+                LayoutAll();
                 RefreshInventory();
             }
 
@@ -419,6 +395,48 @@ namespace LostGoddess
             if (!on && _isOpen) { _isOpen = false; _inventoryPanel.SetActive(false); }
         }
 
+        /// <summary>按当前 InventoryPanelLayout 参数重排面板与全部格位。
+        /// ★ 改任何排版参数(或调试场景里调参)后调用它,不需要重建 UI。</summary>
+        public void LayoutAll()
+        {
+            if (_bagUIGo == null) return;
+
+            float k = InventoryPanelLayout.ScaleFactor;
+            Vector2 panelSize = InventoryPanelLayout.PanelDisplaySize;
+
+            var bagRt = _bagUIGo.GetComponent<RectTransform>();
+            if (bagRt != null) bagRt.sizeDelta = panelSize;
+
+            if (_dimImage != null)
+                _dimImage.color = new Color(0f, 0f, 0f, InventoryPanelLayout.DimAlpha);
+
+            var tileSize = new Vector2(InventoryPanelLayout.TileW * k, InventoryPanelLayout.TileH * k);
+
+            for (int i = 0; i < _slots.Count; i++)
+            {
+                var slot = _slots[i];
+                var rt = slot.slotObject.GetComponent<RectTransform>();
+                Vector2 c = InventoryPanelLayout.SlotCenter(i);
+                var slotPos = new Vector2(c.x * k, -c.y * k);
+                rt.anchoredPosition = slotPos;
+                rt.sizeDelta = tileSize;
+
+                // 图标:位置相对**槽位中心**(槽位自身已经落在格子中心了)
+                if (slot.itemId != null)
+                {
+                    ItemIconGeom g;
+                    if (InventoryPanelLayout.TryGet(slot.itemId, out g))
+                    {
+                        Vector2 size, absPos;
+                        InventoryPanelLayout.ComputeSlot(i, slot.itemId, g, out size, out absPos);
+                        var iconRt = slot.iconObject.GetComponent<RectTransform>();
+                        iconRt.sizeDelta = size;
+                        iconRt.anchoredPosition = absPos - slotPos;
+                    }
+                }
+            }
+        }
+
         void RefreshInventory()
         {
             var items = GameState.GetAllItems();
@@ -430,6 +448,7 @@ namespace LostGoddess
                 slot.itemId = null;
                 slot.iconImage.sprite = null;
                 slot.iconImage.enabled = false;
+                slot.iconObject.SetActive(false);
                 slot.slotObject.SetActive(false);
             }
 
@@ -441,8 +460,7 @@ namespace LostGoddess
 
                 slot.itemId = itemId;
                 slot.slotObject.SetActive(true);
-
-                Debug.Log($"[InventoryUI] 槽位 {i}: itemId={itemId}");
+                slot.iconObject.SetActive(true);
 
                 // 加载道具图标
                 var iconSprite = LoadItemIcon(itemId);
@@ -450,7 +468,6 @@ namespace LostGoddess
                 {
                     slot.iconImage.sprite = iconSprite;
                     slot.iconImage.enabled = true;
-                    Debug.Log($"[InventoryUI] 槽位 {i} 图标加载成功");
                 }
                 else
                 {
@@ -461,58 +478,34 @@ namespace LostGoddess
                 UpdateSlotHighlight(slot);
             }
 
-            Debug.Log($"[InventoryUI] 背包刷新完成，显示了 {items.Count} 个道具");
+            LayoutAll();
         }
 
         Sprite LoadItemIcon(string itemId)
         {
-            // 道具ID到图标路径的映射
-            string iconPath = GetIconPath(itemId);
-            if (string.IsNullOrEmpty(iconPath))
+            ItemIconGeom g;
+            if (!InventoryPanelLayout.TryGet(itemId, out g))
             {
-                Debug.LogWarning($"[InventoryUI] 未找到道具图标映射: itemId={itemId}");
+                Debug.LogWarning($"[InventoryUI] InventoryPanelLayout 里没有该道具: {itemId}");
                 return null;
             }
-
-            Debug.Log($"[InventoryUI] 加载图标: itemId={itemId}, path={iconPath}");
-
-            var sprite = Resources.Load<Sprite>(iconPath);
-            if (sprite == null)
-            {
-                var tex = Resources.Load<Texture2D>(iconPath);
-                if (tex != null)
-                {
-                    sprite = Sprite.Create(tex, new Rect(0, 0, tex.width, tex.height), new Vector2(0.5f, 0.5f));
-                    Debug.Log($"[InventoryUI] 从Texture2D创建Sprite: {tex.width}x{tex.height}");
-                }
-                else
-                {
-                    Debug.LogWarning($"[InventoryUI] 图标资源加载失败: path={iconPath}");
-                }
-            }
-            return sprite;
+            var sp = LoadSprite(g.resourcePath);
+            if (sp == null)
+                Debug.LogWarning($"[InventoryUI] 图标资源加载失败: {g.resourcePath}");
+            return sp;
         }
 
-        string GetIconPath(string itemId)
+        /// <summary>先按 Sprite 取;拿不到(有些图是 Default 导入)再退回 Texture2D 现做。</summary>
+        static Sprite LoadSprite(string path)
         {
-            // 道具ID到图标路径的映射
-            switch (itemId)
-            {
-                case "crowbar": return "UI/Icons/crowbar_v2";
-                case "focus_lens": return "UI/Icons/focus_lens_v2";
-                case "brass_base": return "UI/Icons/brass_base_v2";
-                case "gear_1": return "UI/Icons/gear_small_v2";
-                case "gear_2": return "UI/Icons/gear_big_v2";
-                case "pottery_key": return "UI/Icons/pottery_key";  // 500×500 铜钥匙图标,与其他道具尺寸一致
-                case "lantern": return "UI/Icons/hand_lamp";
-                case "magnifier": return "UI/Icons/magnifier";
-                case "hex_wrench": return "UI/Icons/hex_wrench";
-                case "wrench": return "UI/Icons/wrench";  // 铸铁扳手(残骸间拾取)
-                // 注意:背包本身不 Add 到 InventorySystem(见 Interact_PickupBackpack),这里不设映射
-                default:
-                    Debug.LogWarning($"[InventoryUI] 未配置道具图标映射: {itemId}");
-                    return null;
-            }
+            if (string.IsNullOrEmpty(path)) return null;
+            var sp = Resources.Load<Sprite>(path);
+            if (sp != null) return sp;
+            var tex = Resources.Load<Texture2D>(path);
+            if (tex != null)
+                return Sprite.Create(tex, new Rect(0, 0, tex.width, tex.height),
+                                     new Vector2(0.5f, 0.5f), 100f);
+            return null;
         }
 
         // 2026-07-25 双击检测:双击道具 → 弹"是否使用该道具"确认 → 是 → 特写+文案介绍
@@ -559,11 +552,7 @@ namespace LostGoddess
                 onYes: () =>
                 {
                     // 关闭背包面板,避免背包底部描述条(order 1150)盖住道具文案(order 1100)。
-                    if (_isOpen)
-                    {
-                        _isOpen = false;
-                        _inventoryPanel.SetActive(false);
-                    }
+                    if (_isOpen) SetOpen(false);
                     // 记录该道具"已被使用"
                     GameState.SetFlag($"item_used_{itemId}", true);
                     InventorySystem.ClearSelection();
@@ -618,11 +607,26 @@ namespace LostGoddess
             slot.highlightObject.SetActive(isSelected);
         }
 
+        /// <summary>调试场景用:把格子框与中心点画出来(检查道具是否居中、大小是否合适)。</summary>
+        public void SetSlotDebugOutline(bool on)
+        {
+            foreach (var s in _slots)
+            {
+                if (s.slotImage != null)
+                    s.slotImage.color = on ? new Color(1f, 0.15f, 0.15f, 0.22f)
+                                           : new Color(0f, 0f, 0f, 0.01f);
+                if (s.debugCenter != null) s.debugCenter.SetActive(on);
+            }
+        }
+
         class InventorySlot
         {
             public GameObject slotObject;
+            public GameObject iconObject;
             public Image iconImage;
             public GameObject highlightObject;
+            public Image slotImage;
+            public GameObject debugCenter;
             public Button button;
             public string itemId;
         }

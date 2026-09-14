@@ -1,0 +1,4 @@
+# 由 build_bag_asset.py / measure_grid3.py 从 PSD 再生的中间产物,不入库(省 LFS 额度)
+raw/
+bag_panel_crop.png
+grid_measure_overlay.png
