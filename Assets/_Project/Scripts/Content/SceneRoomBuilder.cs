@@ -208,7 +208,14 @@ namespace LostGoddess.Content
         // 【二楼回廊】—— Prologue_UpperHall(2026-07-24 从占位换成真实美术)
         //  美术:Resources/Scenes/UpperCorridor/{bg_full, bg_far, bg_near}(用户"一楼门廊"资源)
         //   · 图 5950×1200:场景比其他房间更长,靠相机 clamp 自动平移(视口宽不变,只是可走范围更长)
-        //   · 三层结构和 UpperHall 类似(bg_full=远景铺满 / bg_near=前景剪影),沿用同一 groundY 公式
+        //   · 三层结构和 UpperHall 类似(bg_far=远景铺满 / bg_near=前景剪影),沿用同一 groundY 公式
+        //  ★★ 2026-09-14 修:远景必须用 **bg_far**,不能再用 bg_full。
+        //     bg_full 是"美术给策划看的合成全景"—— 里面**已经把旧前景的柱子烤死了**
+        //     (实测 bg_full 与 bg_far 在旧前景区域外像素差仅 0.24,前景区域内差 21.6;
+        //      旧前景柱内 bg_full 亮度 6.9 vs bg_far 29.3 ⇒ bg_full = bg_far + 旧前景)。
+        //     以前旧 bg_near 和烤进去的旧柱子严丝合缝,叠着看不出来;
+        //     2026-09-14 换新 bg_near(柱子整体右移 88~176px)后,立刻变成"新旧两张前景叠在一起"。
+        //     ⇒ 远景用干净的 bg_far,前景只由 bg_near 一层负责。改回 bg_full 会复发。
         public static readonly SceneDef UpperCorridor = new SceneDef
         {
             roomName = "UpperCorridor",
@@ -222,7 +229,7 @@ namespace LostGoddess.Content
             parallaxFar = 0.00f,
             parallaxMid = 0.00f,
             parallaxNear = 0.00f,
-            bgFarSprite = "bg_full",        // 5950×1200 全景当远景铺满
+            bgFarSprite = "bg_far",         // ★★ 必须用 bg_far,不能用 bg_full(2026-09-14 修)
             bgMidSprite = "",
             bgNearSprite = "bg_near",       // 前景剪影
         };
