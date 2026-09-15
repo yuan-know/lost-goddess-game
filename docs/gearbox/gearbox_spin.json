@@ -1,0 +1,47 @@
+{
+  "src_zip": "video-frames-20260915-184323.zip",
+  "sheets": [
+    "gearspin_sheet.png",
+    "gearspin_sheet_2.png",
+    "gearspin_sheet_3.png",
+    "gearspin_sheet_4.png"
+  ],
+  "static": "gearbox_static.png",
+  "static_guid": "d4f81a6c2b930e57a1f8c4d6b2e90a13",
+  "sheet_size": [
+    4025,
+    3720
+  ],
+  "frame_w": 575,
+  "frame_h": 620,
+  "cols": 7,
+  "rows": 6,
+  "per_sheet": 41,
+  "n_sheets": 4,
+  "frame_count": 161,
+  "src_size": [
+    1470,
+    630
+  ],
+  "crop_box": [
+    446,
+    12,
+    575,
+    620
+  ],
+  "union_alpha_bbox": [
+    448,
+    14,
+    1019,
+    630
+  ],
+  "blue_px_median": 1722,
+  "guids": [
+    "c7e2a5b18d340f6a92e1c4b7d0a63f25",
+    "c7e2a5b18d340f6a92e1c4b7d0a63f26",
+    "c7e2a5b18d340f6a92e1c4b7d0a63f27",
+    "c7e2a5b18d340f6a92e1c4b7d0a63f28"
+  ],
+  "grid_cells": 42,
+  "blank_tail": 1
+}

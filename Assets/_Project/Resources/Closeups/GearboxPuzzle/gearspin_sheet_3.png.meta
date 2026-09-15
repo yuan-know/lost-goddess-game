@@ -1,0 +1,954 @@
+fileFormatVersion: 2
+guid: c7e2a5b18d340f6a92e1c4b7d0a63f27
+TextureImporter:
+  internalIDToNameTable: []
+  externalObjects: {}
+  serializedVersion: 12
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 4096
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 0
+    wrapV: 0
+    wrapW: 0
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 3
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 4096
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 0
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    sprites: []
+    - serializedVersion: 2
+      name: gearspin_082
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 3100
+        width: 575
+        height: 620
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationOrder: 0
+      bones: []
+      spriteID: 
+      internalID: 0
+      spriteBone: []
+      spriteID: 
+      internalID: 0
+    - serializedVersion: 2
+      name: gearspin_083
+      rect:
+        serializedVersion: 2
+        x: 575
+        y: 3100
+        width: 575
+        height: 620
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationOrder: 0
+      bones: []
+      spriteID: 
+      internalID: 0
+      spriteBone: []
+      spriteID: 
+      internalID: 0
+    - serializedVersion: 2
+      name: gearspin_084
+      rect:
+        serializedVersion: 2
+        x: 1150
+        y: 3100
+        width: 575
+        height: 620
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationOrder: 0
+      bones: []
+      spriteID: 
+      internalID: 0
+      spriteBone: []
+      spriteID: 
+      internalID: 0
+    - serializedVersion: 2
+      name: gearspin_085
+      rect:
+        serializedVersion: 2
+        x: 1725
+        y: 3100
+        width: 575
+        height: 620
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationOrder: 0
+      bones: []
+      spriteID: 
+      internalID: 0
+      spriteBone: []
+      spriteID: 
+      internalID: 0
+    - serializedVersion: 2
+      name: gearspin_086
+      rect:
+        serializedVersion: 2
+        x: 2300
+        y: 3100
+        width: 575
+        height: 620
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationOrder: 0
+      bones: []
+      spriteID: 
+      internalID: 0
+      spriteBone: []
+      spriteID: 
+      internalID: 0
+    - serializedVersion: 2
+      name: gearspin_087
+      rect:
+        serializedVersion: 2
+        x: 2875
+        y: 3100
+        width: 575
+        height: 620
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationOrder: 0
+      bones: []
+      spriteID: 
+      internalID: 0
+      spriteBone: []
+      spriteID: 
+      internalID: 0
+    - serializedVersion: 2
+      name: gearspin_088
+      rect:
+        serializedVersion: 2
+        x: 3450
+        y: 3100
+        width: 575
+        height: 620
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationOrder: 0
+      bones: []
+      spriteID: 
+      internalID: 0
+      spriteBone: []
+      spriteID: 
+      internalID: 0
+    - serializedVersion: 2
+      name: gearspin_089
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 2480
+        width: 575
+        height: 620
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationOrder: 0
+      bones: []
+      spriteID: 
+      internalID: 0
+      spriteBone: []
+      spriteID: 
+      internalID: 0
+    - serializedVersion: 2
+      name: gearspin_090
+      rect:
+        serializedVersion: 2
+        x: 575
+        y: 2480
+        width: 575
+        height: 620
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationOrder: 0
+      bones: []
+      spriteID: 
+      internalID: 0
+      spriteBone: []
+      spriteID: 
+      internalID: 0
+    - serializedVersion: 2
+      name: gearspin_091
+      rect:
+        serializedVersion: 2
+        x: 1150
+        y: 2480
+        width: 575
+        height: 620
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationOrder: 0
+      bones: []
+      spriteID: 
+      internalID: 0
+      spriteBone: []
+      spriteID: 
+      internalID: 0
+    - serializedVersion: 2
+      name: gearspin_092
+      rect:
+        serializedVersion: 2
+        x: 1725
+        y: 2480
+        width: 575
+        height: 620
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationOrder: 0
+      bones: []
+      spriteID: 
+      internalID: 0
+      spriteBone: []
+      spriteID: 
+      internalID: 0
+    - serializedVersion: 2
+      name: gearspin_093
+      rect:
+        serializedVersion: 2
+        x: 2300
+        y: 2480
+        width: 575
+        height: 620
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationOrder: 0
+      bones: []
+      spriteID: 
+      internalID: 0
+      spriteBone: []
+      spriteID: 
+      internalID: 0
+    - serializedVersion: 2
+      name: gearspin_094
+      rect:
+        serializedVersion: 2
+        x: 2875
+        y: 2480
+        width: 575
+        height: 620
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationOrder: 0
+      bones: []
+      spriteID: 
+      internalID: 0
+      spriteBone: []
+      spriteID: 
+      internalID: 0
+    - serializedVersion: 2
+      name: gearspin_095
+      rect:
+        serializedVersion: 2
+        x: 3450
+        y: 2480
+        width: 575
+        height: 620
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationOrder: 0
+      bones: []
+      spriteID: 
+      internalID: 0
+      spriteBone: []
+      spriteID: 
+      internalID: 0
+    - serializedVersion: 2
+      name: gearspin_096
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 1860
+        width: 575
+        height: 620
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationOrder: 0
+      bones: []
+      spriteID: 
+      internalID: 0
+      spriteBone: []
+      spriteID: 
+      internalID: 0
+    - serializedVersion: 2
+      name: gearspin_097
+      rect:
+        serializedVersion: 2
+        x: 575
+        y: 1860
+        width: 575
+        height: 620
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationOrder: 0
+      bones: []
+      spriteID: 
+      internalID: 0
+      spriteBone: []
+      spriteID: 
+      internalID: 0
+    - serializedVersion: 2
+      name: gearspin_098
+      rect:
+        serializedVersion: 2
+        x: 1150
+        y: 1860
+        width: 575
+        height: 620
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationOrder: 0
+      bones: []
+      spriteID: 
+      internalID: 0
+      spriteBone: []
+      spriteID: 
+      internalID: 0
+    - serializedVersion: 2
+      name: gearspin_099
+      rect:
+        serializedVersion: 2
+        x: 1725
+        y: 1860
+        width: 575
+        height: 620
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationOrder: 0
+      bones: []
+      spriteID: 
+      internalID: 0
+      spriteBone: []
+      spriteID: 
+      internalID: 0
+    - serializedVersion: 2
+      name: gearspin_100
+      rect:
+        serializedVersion: 2
+        x: 2300
+        y: 1860
+        width: 575
+        height: 620
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationOrder: 0
+      bones: []
+      spriteID: 
+      internalID: 0
+      spriteBone: []
+      spriteID: 
+      internalID: 0
+    - serializedVersion: 2
+      name: gearspin_101
+      rect:
+        serializedVersion: 2
+        x: 2875
+        y: 1860
+        width: 575
+        height: 620
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationOrder: 0
+      bones: []
+      spriteID: 
+      internalID: 0
+      spriteBone: []
+      spriteID: 
+      internalID: 0
+    - serializedVersion: 2
+      name: gearspin_102
+      rect:
+        serializedVersion: 2
+        x: 3450
+        y: 1860
+        width: 575
+        height: 620
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationOrder: 0
+      bones: []
+      spriteID: 
+      internalID: 0
+      spriteBone: []
+      spriteID: 
+      internalID: 0
+    - serializedVersion: 2
+      name: gearspin_103
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 1240
+        width: 575
+        height: 620
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationOrder: 0
+      bones: []
+      spriteID: 
+      internalID: 0
+      spriteBone: []
+      spriteID: 
+      internalID: 0
+    - serializedVersion: 2
+      name: gearspin_104
+      rect:
+        serializedVersion: 2
+        x: 575
+        y: 1240
+        width: 575
+        height: 620
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationOrder: 0
+      bones: []
+      spriteID: 
+      internalID: 0
+      spriteBone: []
+      spriteID: 
+      internalID: 0
+    - serializedVersion: 2
+      name: gearspin_105
+      rect:
+        serializedVersion: 2
+        x: 1150
+        y: 1240
+        width: 575
+        height: 620
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationOrder: 0
+      bones: []
+      spriteID: 
+      internalID: 0
+      spriteBone: []
+      spriteID: 
+      internalID: 0
+    - serializedVersion: 2
+      name: gearspin_106
+      rect:
+        serializedVersion: 2
+        x: 1725
+        y: 1240
+        width: 575
+        height: 620
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationOrder: 0
+      bones: []
+      spriteID: 
+      internalID: 0
+      spriteBone: []
+      spriteID: 
+      internalID: 0
+    - serializedVersion: 2
+      name: gearspin_107
+      rect:
+        serializedVersion: 2
+        x: 2300
+        y: 1240
+        width: 575
+        height: 620
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationOrder: 0
+      bones: []
+      spriteID: 
+      internalID: 0
+      spriteBone: []
+      spriteID: 
+      internalID: 0
+    - serializedVersion: 2
+      name: gearspin_108
+      rect:
+        serializedVersion: 2
+        x: 2875
+        y: 1240
+        width: 575
+        height: 620
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationOrder: 0
+      bones: []
+      spriteID: 
+      internalID: 0
+      spriteBone: []
+      spriteID: 
+      internalID: 0
+    - serializedVersion: 2
+      name: gearspin_109
+      rect:
+        serializedVersion: 2
+        x: 3450
+        y: 1240
+        width: 575
+        height: 620
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationOrder: 0
+      bones: []
+      spriteID: 
+      internalID: 0
+      spriteBone: []
+      spriteID: 
+      internalID: 0
+    - serializedVersion: 2
+      name: gearspin_110
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 620
+        width: 575
+        height: 620
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationOrder: 0
+      bones: []
+      spriteID: 
+      internalID: 0
+      spriteBone: []
+      spriteID: 
+      internalID: 0
+    - serializedVersion: 2
+      name: gearspin_111
+      rect:
+        serializedVersion: 2
+        x: 575
+        y: 620
+        width: 575
+        height: 620
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationOrder: 0
+      bones: []
+      spriteID: 
+      internalID: 0
+      spriteBone: []
+      spriteID: 
+      internalID: 0
+    - serializedVersion: 2
+      name: gearspin_112
+      rect:
+        serializedVersion: 2
+        x: 1150
+        y: 620
+        width: 575
+        height: 620
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationOrder: 0
+      bones: []
+      spriteID: 
+      internalID: 0
+      spriteBone: []
+      spriteID: 
+      internalID: 0
+    - serializedVersion: 2
+      name: gearspin_113
+      rect:
+        serializedVersion: 2
+        x: 1725
+        y: 620
+        width: 575
+        height: 620
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationOrder: 0
+      bones: []
+      spriteID: 
+      internalID: 0
+      spriteBone: []
+      spriteID: 
+      internalID: 0
+    - serializedVersion: 2
+      name: gearspin_114
+      rect:
+        serializedVersion: 2
+        x: 2300
+        y: 620
+        width: 575
+        height: 620
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationOrder: 0
+      bones: []
+      spriteID: 
+      internalID: 0
+      spriteBone: []
+      spriteID: 
+      internalID: 0
+    - serializedVersion: 2
+      name: gearspin_115
+      rect:
+        serializedVersion: 2
+        x: 2875
+        y: 620
+        width: 575
+        height: 620
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationOrder: 0
+      bones: []
+      spriteID: 
+      internalID: 0
+      spriteBone: []
+      spriteID: 
+      internalID: 0
+    - serializedVersion: 2
+      name: gearspin_116
+      rect:
+        serializedVersion: 2
+        x: 3450
+        y: 620
+        width: 575
+        height: 620
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationOrder: 0
+      bones: []
+      spriteID: 
+      internalID: 0
+      spriteBone: []
+      spriteID: 
+      internalID: 0
+    - serializedVersion: 2
+      name: gearspin_117
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 0
+        width: 575
+        height: 620
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationOrder: 0
+      bones: []
+      spriteID: 
+      internalID: 0
+      spriteBone: []
+      spriteID: 
+      internalID: 0
+    - serializedVersion: 2
+      name: gearspin_118
+      rect:
+        serializedVersion: 2
+        x: 575
+        y: 0
+        width: 575
+        height: 620
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationOrder: 0
+      bones: []
+      spriteID: 
+      internalID: 0
+      spriteBone: []
+      spriteID: 
+      internalID: 0
+    - serializedVersion: 2
+      name: gearspin_119
+      rect:
+        serializedVersion: 2
+        x: 1150
+        y: 0
+        width: 575
+        height: 620
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationOrder: 0
+      bones: []
+      spriteID: 
+      internalID: 0
+      spriteBone: []
+      spriteID: 
+      internalID: 0
+    - serializedVersion: 2
+      name: gearspin_120
+      rect:
+        serializedVersion: 2
+        x: 1725
+        y: 0
+        width: 575
+        height: 620
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationOrder: 0
+      bones: []
+      spriteID: 
+      internalID: 0
+      spriteBone: []
+      spriteID: 
+      internalID: 0
+    - serializedVersion: 2
+      name: gearspin_121
+      rect:
+        serializedVersion: 2
+        x: 2300
+        y: 0
+        width: 575
+        height: 620
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationOrder: 0
+      bones: []
+      spriteID: 
+      internalID: 0
+      spriteBone: []
+      spriteID: 
+      internalID: 0
+    - serializedVersion: 2
+      name: gearspin_122
+      rect:
+        serializedVersion: 2
+        x: 2875
+        y: 0
+        width: 575
+        height: 620
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationOrder: 0
+      bones: []
+      spriteID: 
+      internalID: 0
+      spriteBone: []
+      spriteID: 
+      internalID: 0
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    internalID: 0
+    spriteID: 
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

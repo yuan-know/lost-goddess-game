@@ -1,0 +1,65 @@
+{
+  "_note": "序列帧对齐(2026-09-15 三修)。★ 只裁齿轮箱 441×508,不缩放,原生分辨率。",
+  "static_composite": {
+    "alpha_bbox_in_pack": [
+      13,
+      10,
+      826,
+      979
+    ],
+    "pack_origin_canvas": [
+      1310.0,
+      120.0
+    ],
+    "alpha_bbox_canvas": [
+      1323.0,
+      130.0,
+      2136.0,
+      1099.0
+    ]
+  },
+  "spin_frame": {
+    "frame_size": [
+      575,
+      620
+    ],
+    "cols": 7,
+    "per_sheet": 41,
+    "n_sheets": 4,
+    "frame_count": 161,
+    "crop_box": [
+      446,
+      12,
+      575,
+      620
+    ],
+    "alpha_bbox_union": [
+      2,
+      2,
+      573,
+      618
+    ]
+  },
+  "fit": {
+    "scale_x": 1.4238178633975482,
+    "scale_y": 1.573051948051948,
+    "scale_unified": 1.4984349057247481,
+    "frame_origin_canvas": [
+      1320.0031301885506,
+      127.0031301885505
+    ],
+    "frame_center_canvas": [
+      1750.8031655844156,
+      591.5179509632225
+    ],
+    "container_anchored_pos": [
+      32.26001014610393,
+      5.386101138353737
+    ],
+    "size_delta_container_px": [
+      547.1160449527487,
+      589.9338223838333
+    ],
+    "material_to_screen_upscale": 0.951506165135215
+  }
+}

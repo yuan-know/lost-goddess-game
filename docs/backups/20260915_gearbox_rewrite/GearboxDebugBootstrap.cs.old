@@ -1,0 +1,214 @@
+// ============================================================================
+//  GearboxDebugBootstrap.cs —— 齿轮箱「内部旋转」独立调试场景
+//  (2026-09-15 从零重做:旧版精密操作玩法 + 千眼回廊背景 已整包弃用)
+//
+//  ★ 搭建基准 = 真实游戏 Sandbox(SandboxBootstrap.cs)+ 千眼回廊调试场景
+//    (EyeCorridorLaserDebugBootstrap.cs)。三件事,与它们逐字对齐:
+//      1) 相机:正交 orthographicSize=6 + **cam.rect 裁进信箱条带** + ClickInputManager
+//         (不裁的话房间会被放大 1.59 倍、两侧被切 —— 旧版就是栽在这)
+//      2) 背景:**真实武器房** SceneRoomBuilder.Build(WeaponsRoom)
+//         room.name = "Room_" + Rooms.Chapter1_WeaponsRoom(与 WeaponsRoomScene 同名)
+//      3) 玩家:PlayerBuilder.Build(era, groundY, x, yOffsetOverride: GetChapter1YOffset)
+//      4) 齿轮箱走**真实特写层通道** CloseupView(OpenExisting),不是世界空间假特写
+//
+//  玩法(用户 2026-09-15 口述):
+//    · 点右侧**大传动轴**   → 播放齿轮箱内部旋转序列帧 → 通关
+//    · 点齿轮箱内**其他零件** → 喷烟雾 + 弹出失败刻痕
+//
+//  操作:
+//    左键点击    → 判定命中(大传动轴 = 通关 / 其他零件 = 惩罚)
+//    R           → 重置 → 可直接重开
+//    N           → 重新打开特写(关掉后用)
+//    Esc         → 关闭特写(调试用;正式流程由通关回调接管)
+//    G / H       → 唤出 / 隐藏 调试 HUD(默认隐藏,正式观感不该有调试文字)
+//    1/2/3       → 切换形态 青年/中年/老年(重建玩家)
+// ============================================================================
+
+using UnityEngine;
+using UnityEngine.UI;
+using LostGoddess.Content;   // SceneRoomBuilder 在这个命名空间下
+
+namespace LostGoddess
+{
+    public class GearboxDebugBootstrap : MonoBehaviour
+    {
+        Text _hud;
+        bool _showHud = false;                 // 默认隐藏(照 EyeCorridorLaserDebugBootstrap)
+        GearboxSpinCloseup.SpinBehaviour _beh;
+        bool _solved;
+
+        void Start()
+        {
+            EnsureGameManager();
+            PlayerBuilder.EnableAutoRebuild();
+            AudioManager.Init(this);           // 没音频文件时 AudioManager 自己静默
+
+            GameState.CurrentRoom = Rooms.Chapter1_WeaponsRoom;
+            GameState.CurrentEra = Era.Middle; // 齿轮箱是 S05 中年线
+
+            BuildCamera();                     // 正交 + cam.rect 裁条带
+            LetterboxOverlay.Ensure();         // 电影级信箱黑边
+            BuildRoomAndPlayer();              // ★ 真实武器房 + 玩家(照 WeaponsRoomScene)
+
+            OpenPuzzle();
+            BuildHud();
+            Debug.Log("[GearboxDebug] 点右侧大传动轴 → 内部旋转 → 通关;点其他零件 → 蒸汽 + 失败刻痕。"
+                    + "G/H 开关 HUD,R 重置,N 重开特写。");
+        }
+
+        void OpenPuzzle()
+        {
+            _solved = false;
+            GearboxSpinCloseup.Show(() =>
+            {
+                _solved = true;
+                Debug.Log("[GearboxDebug] ★ 齿轮箱内部旋转播放完毕 —— 通关(调试模式不切场景)。按 R 重来。");
+            });
+            CloseupView.SetCanClose(true);      // 调试场景允许点背景 / Esc 关闭
+            _beh = Object.FindObjectOfType<GearboxSpinCloseup.SpinBehaviour>();
+        }
+
+        // ── 系统 ─────────────────────────────────────────────────────────
+        void EnsureGameManager()
+        {
+            if (GameManager.Instance == null)
+            {
+                var go = new GameObject("GameManager");
+                go.AddComponent<GameManager>();
+            }
+        }
+
+        /// <summary>相机:照抄 SandboxBootstrap.BuildCamera + EyeCorridorLaserDebugBootstrap.BuildCamera。
+        /// orthoSize=6 → 世界高 12 单位;cam.rect 裁进中间条带后,世界宽 = 12×(1920/678) ≈ 34,
+        /// 正好等于 3400×1200 房间图 1:1 铺满 1920×678 条带。</summary>
+        void BuildCamera()
+        {
+            if (Camera.main == null)
+            {
+                var go = new GameObject("Main Camera");
+                go.tag = "MainCamera";
+                var newCam = go.AddComponent<Camera>();
+                go.AddComponent<AudioListener>();
+                newCam.orthographic = true;
+                newCam.orthographicSize = 6f;
+                newCam.transform.position = new Vector3(0f, 0f, -10f);
+            }
+
+            var cam = Camera.main;
+            cam.orthographic = true;
+            cam.orthographicSize = 6f;
+            cam.clearFlags = CameraClearFlags.SolidColor;
+            cam.backgroundColor = new Color(0.05f, 0.05f, 0.06f);   // 近黑
+            cam.transform.position = new Vector3(0f, 0f, -10f);
+
+            // ★★ 关键:视口裁进信箱条带。漏了这步 → 房间被放大 1.59 倍且两侧被切,
+            //    用户原话"特写图背后的场景显示明显不对"。
+            float barPct = LetterboxOverlay.BarHeightPct;
+            cam.rect = new Rect(0f, barPct, 1f, 1f - 2f * barPct);
+
+            if (cam.GetComponent<ClickInputManager>() == null)
+                cam.gameObject.AddComponent<ClickInputManager>();
+        }
+
+        /// <summary>真实武器房 + 玩家。逐条照 WeaponsRoomScene.Build 的搭建方式。
+        /// ★ 必须用 SceneRoomBuilder.Build(SceneRoomBuilder.WeaponsRoom):图层、排序、
+        ///   地平线(groundY=-5.66)、bg_near 前景全在里面。
+        /// ⚠ 不要在这里挂 ScenePortal:调试场景不该能切走。</summary>
+        void BuildRoomAndPlayer()
+        {
+            var room = SceneRoomBuilder.Build(SceneRoomBuilder.WeaponsRoom);
+            room.name = "Room_" + Rooms.Chapter1_WeaponsRoom;
+            float groundY = SceneRoomBuilder.WeaponsRoom.groundY;
+
+            var player = PlayerBuilder.Build(GameState.CurrentEra, groundY, 0f,
+                yOffsetOverride: PlayerBuilder.GetChapter1YOffset(GameState.CurrentEra));
+            if (player != null)
+            {
+                var pc = player.GetComponent<PlayerController>();
+                if (pc != null)
+                {
+                    pc.spriteFacesRight = false;
+                    var s = player.transform.localScale;
+                    s.x = Mathf.Abs(s.x) * -1f;   // 立绘默认朝左
+                    player.transform.localScale = s;
+                }
+            }
+        }
+
+        // ── HUD(与旧版同款,只换文案)─────────────────────────────────────
+        void BuildHud()
+        {
+            var canvasGo = new GameObject("GearboxDebugHud");
+            var canvas = canvasGo.AddComponent<Canvas>();
+            canvas.renderMode = RenderMode.ScreenSpaceOverlay;
+            canvas.sortingOrder = 2000;              // 压在 CloseupView(1050) 之上
+            var scaler = canvasGo.AddComponent<CanvasScaler>();
+            scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
+            scaler.referenceResolution = new Vector2(1920f, 1080f);
+            scaler.matchWidthOrHeight = 0.5f;
+
+            var hudGo = new GameObject("Hud");
+            hudGo.transform.SetParent(canvasGo.transform, false);
+            _hud = hudGo.AddComponent<Text>();
+            _hud.font = GameFonts.Primary;
+            _hud.fontSize = 24;
+            _hud.alignment = TextAnchor.UpperLeft;
+            _hud.raycastTarget = false;              // ⚠ 必须关,否则挡住点击
+            _hud.horizontalOverflow = HorizontalWrapMode.Overflow;
+            var rt = _hud.rectTransform;
+            rt.anchorMin = rt.anchorMax = new Vector2(0f, 1f);
+            rt.pivot = new Vector2(0f, 1f);
+            rt.anchoredPosition = new Vector2(14f, -10f);
+            rt.sizeDelta = new Vector2(980f, 580f);
+            _hud.enabled = _showHud;                 // 默认隐藏
+        }
+
+        void Update()
+        {
+            if (Input.GetKeyDown(KeyCode.G) || Input.GetKeyDown(KeyCode.H))
+            {
+                _showHud = !_showHud;
+                if (_hud != null) _hud.enabled = _showHud;
+            }
+
+            if (Input.GetKeyDown(KeyCode.N)) OpenPuzzle();
+            if (Input.GetKeyDown(KeyCode.Escape)) CloseupView.Close();
+
+            if (Input.GetKeyDown(KeyCode.R))
+            {
+                if (_beh != null) _beh.ResetRun();
+                else OpenPuzzle();
+            }
+
+            if (Input.GetKeyDown(KeyCode.Alpha1)) SwitchEra(Era.Young);
+            else if (Input.GetKeyDown(KeyCode.Alpha2)) SwitchEra(Era.Middle);
+            else if (Input.GetKeyDown(KeyCode.Alpha3)) SwitchEra(Era.Old);
+
+            if (_beh == null) _beh = Object.FindObjectOfType<GearboxSpinCloseup.SpinBehaviour>();
+
+            if (_showHud && _hud != null)
+            {
+                string st = _beh == null ? "(特写未打开)"
+                    : (_beh.State == GearboxSpinCloseup.SpinBehaviour.Phase.Solved ? "★ 已通关"
+                    : (_beh.State == GearboxSpinCloseup.SpinBehaviour.Phase.Penalizing ? "⚠ 惩罚中"
+                    : (_beh.State == GearboxSpinCloseup.SpinBehaviour.Phase.Spinning ? "旋转中…" : "待操作")));
+                _hud.text =
+                    "── 齿轮箱 · 内部旋转(特写层) · 调试 ──\n"
+                    + string.Format("状态 {0}    失败次数 {1}\n", st, _beh != null ? _beh.PenaltyCount : 0)
+                    + "背景:武器房 SceneRoomBuilder.WeaponsRoom(groundY=-5.66)\n"
+                    + "特写:CloseupView sortingOrder=1050 + DimBackground 0.7\n\n"
+                    + "玩法:点**右侧大传动轴** → 齿轮箱内部旋转 → 通关\n"
+                    + "      点其他零件        → 喷蒸汽 + 弹出失败刻痕\n\n"
+                    + "快捷键: R 重置(重开特写)  N 重开特写  Esc 关闭\n"
+                    + "        1/2/3 青年/中年/老年  G/H 本面板";
+            }
+        }
+
+        void SwitchEra(Era era)
+        {
+            if (GameState.CurrentEra == era) return;
+            GameState.SetEra(era);   // 触发 OnEraChanged → PlayerBuilder 重建
+            Debug.Log("[GearboxDebug] 切换形态: " + era);
+        }
+    }
+}

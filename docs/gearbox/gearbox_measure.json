@@ -1,0 +1,85 @@
+{
+  "rect": [
+    1310,
+    120,
+    2145,
+    1108
+  ],
+  "rect_size": [
+    835,
+    988
+  ],
+  "root_px": [
+    1732.5,
+    1015.0
+  ],
+  "valve": [
+    1691,
+    720
+  ],
+  "gear_small": [
+    1550,
+    522
+  ],
+  "gear_big": [
+    1787,
+    350
+  ],
+  "shaft": [
+    1781,
+    704
+  ],
+  "valve_spout": [
+    1583,
+    688
+  ],
+  "knob": [
+    2092,
+    605
+  ],
+  "knob_rect": [
+    2042,
+    532,
+    2140,
+    678
+  ],
+  "knob_pivot_px": [
+    2042.0,
+    605.0
+  ],
+  "pivots": {
+    "gearbox_base": [
+      0.50599,
+      0.09413
+    ],
+    "gearbox_knob": [
+      0.0,
+      0.5
+    ],
+    "gearbox_valve": [
+      0.45629,
+      0.39271
+    ],
+    "gearbox_gear_small": [
+      0.28743,
+      0.59312
+    ],
+    "gearbox_gear_big": [
+      0.57126,
+      0.76721
+    ],
+    "gearbox_shaft": [
+      0.56407,
+      0.40891
+    ]
+  },
+  "guids": {
+    "gearbox_base": "b1a7e4c2d3f54a0198c6e2d1a4f70a01",
+    "gearbox_valve": "b1a7e4c2d3f54a0198c6e2d1a4f70a02",
+    "gearbox_gear_small": "b1a7e4c2d3f54a0198c6e2d1a4f70a03",
+    "gearbox_gear_big": "b1a7e4c2d3f54a0198c6e2d1a4f70a04",
+    "gearbox_shaft": "b1a7e4c2d3f54a0198c6e2d1a4f70a05",
+    "gearbox_knob": "n7c3k1m5p9w42r8816y3z6b2e4s63d19",
+    "scar_offset_line": "b1a7e4c2d3f54a0198c6e2d1a4f70a07"
+  }
+}
